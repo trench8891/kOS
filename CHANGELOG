@@ -1,0 +1,12 @@
+1.0.0
+- added execute-delegates.ks
+- added libraries
+	- comms-lib.ks
+	- io-lib.ks
+	- kac-lib.ks
+	- launch-lib.ks
+	- maneuver-lib.ks
+	- orbit-lib.ks
+	- sat4-lib.ks
+	- store-lib.ks
+- added kerbsat-alpha.ks which will allow us to launch comms satellites in tetrahedral formation
