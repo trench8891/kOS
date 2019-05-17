@@ -151,14 +151,7 @@ debug("preparing insertion delegate").
 delegates:ADD({
 	PRINT("preparing for orbital insertion...").
 	debug("preparing for orbital insertion at " + TIME).
-	LOCAL time_to_node IS (TIME:SECONDS + ETA:APOAPSIS).
-	debug("time to node: " + time_to_node).
-	LOCAL delta_v IS semimajor_axis_change(
-		SHIP:ORBIT, 
-		SHIP:ORBIT:APOAPSIS + parent:RADIUS
-	).
-	debug("delta v: " + delta_v).
-	ADD NODE(time_to_node, 0, 0, delta_v).
+	ADD circularize_at_apoaps().
 	debug("insertion node: " + NEXTNODE).
 	LOCAL engstat IS engine_breakdown().
 	debug("engstat: " + engstat).
