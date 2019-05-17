@@ -12,6 +12,8 @@ debug("").
 
 // define local args
 PRINT("initializing parameters...").
+LOCAL common_script IS "0:/boot-common.ks".
+debug("common_script: " + common_script).
 LOCAL action_file IS "0:/action/execute-delegates.ks".
 debug("action_file: " + action_file).
 LOCAL action_target IS "1:/execute.ksm".
@@ -40,3 +42,15 @@ delegates:ADD({
 }).
 debug("insertion delegate: "+delegates[delegates:LENGTH-1]).
 debug("").
+
+PRINT("performing common boot actions").
+debug("performing common boot actions").
+debug("").
+RUNPATH(common_script, 
+  KERBIN, 
+  action_file, 
+  action_target, 
+  delegates
+).
+
+PRINT("boot sequence complete").
