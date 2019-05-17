@@ -70,8 +70,7 @@ LOCAL FUNCTION part_comm_range {
 GLOBAL FUNCTION get_all_comms {
   PARAMETER ves.
 
-  debug("fetching all comms modules for " + ves) 
-   .
+  debug("fetching all comms modules for " + ves).
 
   RETURN ves:MODULESNAMED(comms_module_name).
 }
@@ -91,8 +90,7 @@ GLOBAL FUNCTION comm_range {
 
   FOR comm IN get_all_comms(ves) {
     LOCAL cr IS part_comm_range(comm).
-    debug("com range for " + comm:NAME + ": " + cr) 
-     .
+    debug("com range for " + comm:NAME + ": " + cr).
     IF (cr > max_range) {
       SET range TO cr.
     }
