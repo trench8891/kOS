@@ -56,7 +56,6 @@ PRINT("executing launch procedure...").
 debug("executing " + action_target).
 debug("with parameters: " + delegates).
 debug("").
-SWITCH TO 1.
 RUNPATH(action_target, delegates).
 
 // unset boot script
