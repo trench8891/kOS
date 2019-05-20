@@ -1,3 +1,6 @@
+1.0.1
+- DRYed up node execution code
+
 1.0.0
 - added execute-delegates.ks
 - added libraries
