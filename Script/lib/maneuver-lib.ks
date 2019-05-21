@@ -15,7 +15,7 @@ LOCAL FUNCTION get_normal {
 // accepts individual ship values instead of the ship
 // so that burn time can be calculated based on future state
 //
-// PARAMETER dv: deltav in m/s for the node
+// PARAMETER dv0: deltav in m/s for the node
 // PARAMETER m0: initial mass of the vessel (kg)
 // PARAMETER specific_impulse: Isp (seconds) of the engine
 // PARAMETER thrust: maximum thrust of the engine (Newtons)
@@ -40,51 +40,94 @@ LOCAL FUNCTION burn_time {
   ).
 }
 
+// determine time to burn for given dv
+// takes into consideration stage dv limits
+//
+// PARAMETER dv: deltaV in meters per second
+// PARAMETER engstat: LEXICON with engine stats by stage
+//
+// RETURN time in seconds to burn to deltaV
+LOCAL FUNCTION burn_time_by_stage {
+  PARAMETER dv0.
+  PARAMETER engstat.
+
+  debug("calculating burn time with staging").
+  debug("dv: " + dv0).
+  debug("engstat: " + engstat).
+
+  LOCAL total_time IS 0.
+  LOCAL dv_counter IS 0.
+
+  FROM { LOCAL x IS (engstat:LENGTH - 1). } 
+  UNTIL ((dv_counter >= dv0) OR (x < 0)) 
+  STEP { SET x TO (X - 1). } 
+  DO {
+    debug("calculating for stage " + x).
+    LOCAL stage_dv IS 0.
+    IF ((dv_counter + engstat[x]["delta_v"]) >= dv0) {
+      // this is the last stage we'll need
+      debug("final stage found").
+      SET stage_dv TO (dv0 - dv_counter).
+    } ELSE {
+      // we need all the dv from this stage
+      debug("full stage necessary").
+      SET stage_dv TO engstat[x]["delta_v"].
+    }
+
+    debug("stage_dv: " + stage_dv).
+    LOCAL stage_time IS burn_time(
+      stage_dv, 
+      engstat[x]["m0"], 
+      engstat[x]["isp"], 
+      engstat[x]["thrust"]
+    ).
+    debug("stage_time: " + stage_time).
+    SET total_time TO (total_time + stage_time).
+    debug("total_time: " + total_time).
+    SET dv_counter TO (dv_counter + engstat[x]["delta_v"]).
+    debug("dv_counter: " + dv_counter).
+  }
+
+  debug("").
+  RETURN total_time.
+}
+
 // perform actions common to node executions
 //
+// steering lock must happen in calling function,
+// since trying to lock it here would just result in
+// some static value being used
+//
+// PARAMETER engstat: LEXICON with engine stats by stage
 // PARAMETER nd: node for which to burn
-// PARAMETER str_lock: vector or direction to lock steering
-// PARAMETER preburn: time in seconds to burn before node
+// PARAMETER margin: time in seconds to prep before node
 LOCAL FUNCTION node_execution {
+  PARAMETER engstat.
   PARAMETER nd.
-  PARAMETER str_lock.
-  PARAMETER preburn.
+  PARAMETER margin.
 
   debug("preparing to execute node at " + TIME).
-  debug("preburn: " + preburn).
+  debug("engstat: " + engstat).
+  debug("nd: " + nd).
+  debug("margin: " + margin).
 
-  LIST ENGINES IN eng.
-  debug("eng: " + eng).
   LOCAL dv0 IS nd:DELTAV.
   debug("dv0: " + dv0).
-  LOCAL duration IS burn_time(dv0:MAG,
-                              SHIP:MASS,
-                              eng[0]:ISP,
-                              SHIP:AVAILABLETHRUST).
-  debug("duration: " + duration).
+  LOCAL prenodedvtime IS 
+    burn_time_by_stage((dv0:MAG / 2), engstat).
+  debug("begin burn at node-" + prenodedvtime).
 
   PRINT("calculating burn for next node").
   PRINT("burn parameters").
   PRINT("  Δv: " + dv0:MAG + "m/s").
-  PRINT("  Δt: " + duration + "s").
-
-  PRINT("preparing for burn...").
-  debug("preparing for burn at " + TIME).
-  LOCK STEERING TO str_lock.
-  debug("steering locked at " + TIME).
-
-  // wait until ship is pointing towards node
-  debug("waiting for ship alignment").
-  WAIT UNTIL (VANG(nd:DELTAV, SHIP:FACING:VECTOR) < 0.25).
-  PRINT("ready for burn").
-  debug("ready for burn at " + TIME).
+  PRINT("  burn at node-" + prenodedvtime + "s").
 
   PRINT("waiting until node...").
   debug("waiting until node").
-  WAIT UNTIL (nd:ETA <= ((duration / 2) + preburn)).
+  WAIT UNTIL (nd:ETA <= (prenodedvtime + margin)).
   KUNIVERSE:TIMEWARP:CANCELWARP.
 
-  WAIT UNTIL (nd:ETA <= (duration / 2)).
+  WAIT UNTIL (nd:ETA <= prenodedvtime).
   KUNIVERSE:TIMEWARP:CANCELWARP.
   PRINT("IGNITION").
   debug("beginning burn at " + TIME).
@@ -138,9 +181,6 @@ LOCAL FUNCTION node_execution {
 // for now MUST be the next node only, because executing
 // a burn other than the next one is slightly more difficult
 //
-// also it's assumed that the vessel has only one engine,
-// which simplifies determining Isp
-//
 // changing the node between calling this function and
 // node execution is not recommended
 //
@@ -149,26 +189,90 @@ LOCAL FUNCTION node_execution {
 //
 // takes control from calling process
 //
-// PARAMETER preburn: time in seconds to prep before node
+// PARAMETER engstat: LEXICON with engine stats by stage
+// PARAMETER margin: time in seconds to prep before node
 GLOBAL FUNCTION execute_node {
-  PARAMETER preburn IS 60.
+  PARAMETER engstat.
+  PARAMETER margin IS 60.
 
   debug("execute node by locking to node vector").
-  debug("preburn: " + preburn).
+  debug("margin: " + margin).
 
   LOCAL nd IS NEXTNODE.
   debug("nd: " + nd).
 
-  node_execution(nd, nd:DELTAV, preburn).
+  PRINT("preparing for burn...").
+  debug("preparing for burn at " + TIME).
+  LOCK STEERING TO nd:DELTAV.
+  debug("steering locked at " + TIME).
+
+  // wait until ship is pointing towards node
+  debug("waiting for ship alignment").
+  WAIT UNTIL (VANG(nd:DELTAV, SHIP:FACING:VECTOR) < 0.25).
+  PRINT("ready for burn").
+  debug("ready for burn at " + TIME).
+
+  node_execution(engstat, nd, margin).
+}
+
+// execute the next node using prograde/retrograde only
+//
+// for now MUST be the next node only, because executing
+// a burn other than the next one is slightly more difficult
+//
+// changing the node between calling this function and
+// node execution is not recommended
+//
+// locks steering to either prograde or retrograde
+// in order to minimize interferance
+//
+// takes control from calling process
+//
+// PARAMETER engstat: LEXICON with engine stats by stage
+// PARAMETER margin: time in seconds to prep before node
+GLOBAL FUNCTION execute_grade_node {
+  PARAMETER engstat.
+  PARAMETER margin IS 60.
+
+  debug("execute node by locking to prograde/retrograde").
+  debug("margin: " + margin).
+
+  LOCAL nd IS NEXTNODE.
+  debug("nd: " + nd).
+
+  PRINT("preparing for burn...").
+  debug("preparing for burn at " + TIME).
+
+  IF (nd:PROGRADE > 0) {
+    debug("locking to prograde").
+    LOCK STEERING TO PROGRADE.
+    debug("steering locked at " + TIME).
+    // wait until ship is pointing towards prograde
+    debug("waiting for ship alignment").
+    WAIT UNTIL (
+      VANG(PROGRADE:FOREVECTOR, SHIP:FACING:VECTOR) < 0.25
+    ).
+  } ELSE {
+    debug("locking to retrograde").
+    LOCK STEERING TO RETROGRADE.
+    debug("steering locked at " + TIME).
+    // wait until ship is pointing towards retrograde
+    debug("waiting for ship alignment").
+    WAIT UNTIL (
+      VANG(RETROGRADE:FOREVECTOR, SHIP:FACING:VECTOR) < 0.25
+    ).
+  }
+
+  PRINT("ready for burn").
+  debug("ready for burn at " + TIME).
+
+  node_execution(engstat, nd, margin).
 }
 
 // execute the next node using normal/antinormal only
 //
 // for now MUST be the next node only, because executing
 // a burn other than the next one is slightly more difficult
-//
-// also it's assumed that the vessel has only one engine,
-// which simplifies determining Isp
 //
 // changing the node between calling this function and
 // node execution is not recommended
@@ -179,21 +283,34 @@ GLOBAL FUNCTION execute_node {
 //
 // takes control from calling process
 //
-// PARAMETER preburn: time in seconds to prep before node
+// PARAMETER engstat: LEXICON with engine stats by stage
+// PARAMETER margin: time in seconds to prep before node
 GLOBAL FUNCTION execute_normal_node {
-  PARAMETER preburn IS 60.
+  PARAMETER engstat.
+  PARAMETER margin IS 60.
 
   debug("execute node by locking to normal/anti-normal").
-  debug("preburn: " + preburn).
+  debug("margin: " + margin).
 
   LOCAL nd IS NEXTNODE.
   debug("nd: " + nd).
 
+  PRINT("preparing for burn...").
+  debug("preparing for burn at " + TIME).
+
   IF (nd:NORMAL > 0) {
-    debug("will lock to normal").
-    node_execution(nd, get_normal(), preburn).
+    debug("locking to normal").
+    LOCK STEERING TO get_normal().
   } ELSE {
-    debug("will lock to antinormal").
-    node_execution(nd, (-1) * get_normal(), preburn).
+    debug("locking to antinormal").
+    LOCK STEERING TO ((-1) * get_normal()).
   }
+
+  // wait until ship is pointing towards node
+  debug("waiting for ship alignment").
+  WAIT UNTIL (VANG(nd:DELTAV, SHIP:FACING:VECTOR) < 0.25).
+  PRINT("ready for burn").
+  debug("ready for burn at " + TIME).
+
+  node_execution(engstat, nd, margin).
 }
