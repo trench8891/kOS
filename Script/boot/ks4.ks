@@ -10,12 +10,13 @@ RUNONCEPATH("/lib/launch-lib").
 RUNONCEPATH("/lib/maneuver-lib").
 RUNONCEPATH("/lib/orbit-lib").
 RUNONCEPATH("/lib/sat4-lib").
+RUNONCEPATH("/lib/ship-lib").
 RUNONCEPATH("/lib/store-lib").
 debug("all libraries loaded").
 debug("").
 
 // set thresholds
-LOCAL threshold_a IS 10000.
+LOCAL threshold_a IS 2000.
 debug("semi-major axis threshold: " + threshold_a).
 LOCAL threshold_i IS 1.
 debug("inclination threshold: " + threshold_i).
@@ -159,8 +160,9 @@ delegates:ADD({
 	debug("delta v: " + delta_v).
 	ADD NODE(time_to_node, 0, 0, delta_v).
 	debug("insertion node: " + NEXTNODE).
-	execute_node(30).
-
+	LOCAL engstat IS engine_breakdown().
+	debug("engstat: " + engstat).
+	execute_grade_node(engstat, 120).
 }).
 debug("insertion delegate: "+delegates[delegates:LENGTH-1]).
 debug("").
@@ -193,7 +195,9 @@ delegates:ADD({
 		}
 
 		debug("fix node: " + NEXTNODE).
-		execute_normal_node(30).
+		LOCAL engstat IS engine_breakdown().
+		debug("engstat: " + engstat).
+		execute_normal_node(engstat, 90).
 		debug("").
 	}
 }).
@@ -214,7 +218,9 @@ delegates:ADD({
 	debug("delta v: " + delta_v).
 	ADD NODE(time_to_node, 0, 0, delta_v).
 	debug("apoaps node: " + NEXTNODE).
-	execute_node(30).
+	LOCAL engstat IS engine_breakdown().
+	debug("engstat: " + engstat).
+	execute_grade_node(engstat, 120).
 	debug("").
 }).
 debug("apoaps delegate: "+delegates[delegates:LENGTH - 1]).
