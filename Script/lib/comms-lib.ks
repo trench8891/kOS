@@ -91,7 +91,7 @@ GLOBAL FUNCTION comm_range {
 
   FOR comm IN get_all_comms(ves) {
     LOCAL cr IS part_comm_range(comm).
-    debug("com range for " + comm + ": " + cr) 
+    debug("com range for " + comm:NAME + ": " + cr) 
      .
     IF (cr > max_range) {
       SET range TO cr.
