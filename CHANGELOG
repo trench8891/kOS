@@ -1,5 +1,7 @@
 1.0.1
 - DRYed up node execution code
+- Significantly improved burn time calculations and node execution steering
+- Some minor logging fixes
 
 1.0.0
 - added execute-delegates.ks
