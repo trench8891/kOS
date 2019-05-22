@@ -16,7 +16,7 @@ debug("all libraries loaded").
 debug("").
 
 // set thresholds
-LOCAL threshold_a IS 2000.
+LOCAL threshold_a IS 10000.
 debug("semi-major axis threshold: " + threshold_a).
 LOCAL threshold_i IS 1.
 debug("inclination threshold: " + threshold_i).
