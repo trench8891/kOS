@@ -75,12 +75,15 @@ LOCAL FUNCTION burn_time_by_stage {
     }
 
     debug("stage_dv: " + stage_dv).
-    LOCAL stage_time IS burn_time(
-      stage_dv, 
-      engstat[x]["m0"], 
-      engstat[x]["isp"], 
-      engstat[x]["thrust"]
-    ).
+    LOCAL stage_time IS 0.
+    IF (stage_dv > 0) {
+      SET stage_time TO burn_time(
+        stage_dv, 
+        engstat[x]["m0"], 
+        engstat[x]["isp"], 
+        engstat[x]["thrust"]
+      ).
+    }
     debug("stage_time: " + stage_time).
     SET total_time TO (total_time + stage_time).
     debug("total_time: " + total_time).

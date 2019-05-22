@@ -37,7 +37,7 @@ LOCAL FUNCTION parts_by_stage {
   LIST PARTS IN pts.
   debug("pts: " + pts).
   FOR pt IN pts {
-    debug("----part: " + pt).
+    debug("----part: " + pt:NAME).
     LOCAL stage_num IS pt:STAGE.
     IF (stage_num < 0) {
       SET stage_num TO 0.
@@ -99,7 +99,7 @@ LOCAL FUNCTION average_isp {
 
   LOCAL sum IS 0.
   FOR engine IN eng {
-    debug("engine: " + engine).
+    debug(engine:NAME + ": " + engine:VISP).
     SET sum TO (sum + engine:VISP).
   }
 
@@ -118,6 +118,7 @@ LOCAL FUNCTION total_thrust {
 
   LOCAL sum IS 0.
   FOR engine IN eng {
+    debug(engine:NAME + ": " + engine:POSSIBLETHRUST).
     SET sum TO (sum + engine:POSSIBLETHRUST).
   }
 
