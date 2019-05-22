@@ -81,6 +81,7 @@ LOCAL FUNCTION mass_by_stage {
     mass_lex:ADD(x, LEXICON()).
     mass_lex[x]:ADD("wet_mass", total_mass+stage_wet_mass).
     mass_lex[x]:ADD("dry_mass", total_mass+stage_dry_mass).
+    SET total_mass TO (total_mass + stage_wet_mass).
   }
 
   RETURN mass_lex.
@@ -99,7 +100,7 @@ LOCAL FUNCTION average_isp {
   LOCAL sum IS 0.
   FOR engine IN eng {
     debug("engine: " + engine).
-    SET sum TO (sum + engine:ISP).
+    SET sum TO (sum + engine:VISP).
   }
 
   RETURN (sum / eng:LENGTH).
@@ -166,10 +167,16 @@ GLOBAL FUNCTION engine_breakdown {
     debug("determining parameters for stage: " + x).
     breakdown:ADD(x, LEXICON()).
 
-    LOCAL stage_isp IS average_isp(engine_lex[x]).
+    LOCAL stage_isp IS 0.
+    LOCAL stage_thrust IS 0.
+
+    IF engine_lex:HASKEY(x) {
+      SET stage_isp TO average_isp(engine_lex[x]).
+      SET stage_thrust TO total_thrust(engine_lex[x]).
+    }
     debug("stage_isp: " + stage_isp).
-    LOCAL stage_thrust IS total_thrust(engine_lex[x]).
     debug("stage_thrust: " + stage_thrust).
+    
     LOCAL stage_wet_mass IS mass_lex[x]["wet_mass"].
     debug("stage_wet_mass: " + stage_wet_mass).
     LOCAL stage_dry_mass IS mass_lex[x]["dry_mass"].

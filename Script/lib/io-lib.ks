@@ -7,7 +7,7 @@ GLOBAL FUNCTION debug {
   PARAMETER msg.
 
   LOCAL logfile IS "0:/logfile.txt".
-  LOCAL tolog IS false.
+  LOCAL tolog IS true.
 
   IF tolog {
     LOG(msg) TO logfile.
