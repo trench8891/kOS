@@ -17,7 +17,7 @@ LOCAL FUNCTION shipnames {
 // fetch the namespace for the save
 //
 // RETURN a namespace string
-LOCAL FUNCTION namespace {
+GLOBAL FUNCTION namespace {
   LOCAL ns IS "default".
   FOR n IN shipnames() {
     IF n:STARTSWITH("namespace_") {
@@ -63,7 +63,11 @@ ON ADDONS:RT:HASKSCCONNECTION(SHIP) {
 GLOBAL FUNCTION debug {
   PARAMETER msg.
 
-  LOCAL logmsg IS (FLOOR(TIME:SECONDS) + ": " + msg).
+  LOCAL logmsg IS msg.
+  IF (msg:LENGTH > 0) {
+    SET logmsg TO (FLOOR(TIME:SECONDS) + ": " + msg).
+  }
+
   IF ADDONS:RT:HASKSCCONNECTION(SHIP) {
     LOG(logmsg) TO logfile.
   } ELSE {

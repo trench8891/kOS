@@ -3,6 +3,7 @@
 - Significantly improved burn time calculations and node execution steering
 - added ship-lib library
 - Significantly improved logging
+- Namespaced store
 
 1.0.0
 - added execute-delegates.ks
