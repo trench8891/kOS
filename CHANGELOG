@@ -1,7 +1,8 @@
 2.0.0
 - DRYed up node execution code
 - Significantly improved burn time calculations and node execution steering
-- Some minor logging fixes
+- added ship-lib library
+- Significantly improved logging
 
 1.0.0
 - added execute-delegates.ks
