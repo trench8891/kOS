@@ -5,11 +5,8 @@ RUNONCEPATH("/lib/io-lib").
 debug("loading " + SCRIPTPATH()).
 
 LOCAL comms_module_name IS "ModuleRTAntenna".
-debug("  comms_module_name: " + comms_module_name).
 LOCAL comms_dish_range IS "dish range".
-debug("  comms_dish_range: " + comms_dish_range).
 LOCAL comms_omni_range IS "omni range".
-debug("  comms_omni_range: " + comms_omni_range).
 
 // convert the comm range string to scalar
 //

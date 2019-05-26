@@ -4,7 +4,8 @@
 RUNONCEPATH("/lib/io-lib").
 debug("loading " + SCRIPTPATH()).
 
-LOCAL store_location IS PATH("0:/store.json").
+LOCAL store_location IS 
+	PATH("0:/store/" + namespace() + ".json").
 debug("store location: " + store_location).
 
 // Retrieve the store

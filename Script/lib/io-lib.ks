@@ -1,16 +1,77 @@
 // helpful I/O functions
 
-// wrapper around debug to make logging easy
+// fetch a list of the names of every vessel
+//
+// RETURN a LIST with the names of every vessel
+LOCAL FUNCTION shipnames {
+  LOCAL nameslist IS LIST().
+
+  LIST TARGETS IN tars.
+  FOR ves IN tars {
+    nameslist:ADD(ves:NAME).
+  }
+
+  RETURN nameslist.
+}
+
+// fetch the namespace for the save
+//
+// RETURN a namespace string
+GLOBAL FUNCTION namespace {
+  LOCAL ns IS "default".
+  FOR n IN shipnames() {
+    IF n:STARTSWITH("namespace_") {
+      SET ns TO n:SPLIT("_")[1].
+      BREAK.
+    }
+  }
+
+  RETURN ns.
+}
+
+// some startup stuff
+LOCAL logfile IS (
+  "0:/logs/" + 
+  namespace() + 
+  "/" + 
+  SHIP:NAME:REPLACE(" ", "_") + 
+  ".txt"
+).
+PRINT("logfile: " + logfile).
+LOCAL shiplog IS "1:/log.txt".
+DELETEPATH(logfile). // remove duplicate logfile
+
+// move contents of log on ship to archive
+// should only be called when archive is accessible
+LOCAL FUNCTION movelog {
+  IF EXISTS(shiplog) {
+    OPEN(logfile):WRITE(OPEN(shiplog):READALL).
+    DELETEPATH(shiplog).
+  }
+}
+
+ON ADDONS:RT:HASKSCCONNECTION(SHIP) {
+  IF ADDONS:RT:HASKSCCONNECTION(SHIP) {
+    movelog().
+  }
+  RETURN true.
+}
+
+// wrapper around LOG to make logging easy
 //
 // PARAMETER msg: the message to log
 GLOBAL FUNCTION debug {
   PARAMETER msg.
 
-  LOCAL logfile IS "0:/logfile.txt".
-  LOCAL tolog IS false.
+  LOCAL logmsg IS msg.
+  IF (msg:LENGTH > 0) {
+    SET logmsg TO (FLOOR(TIME:SECONDS) + ": " + msg).
+  }
 
-  IF tolog {
-    LOG(msg) TO logfile.
+  IF ADDONS:RT:HASKSCCONNECTION(SHIP) {
+    LOG(logmsg) TO logfile.
+  } ELSE {
+    LOG(logmsg) TO shiplog.
   }
 }
 
