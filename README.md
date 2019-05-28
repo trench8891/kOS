@@ -16,7 +16,7 @@ Start on archive so boot files run there instead of ship volume
 Perform as much calculation as possible on archive and compile a very simple script to ship volume that just runs a list of delegates.
 
 ## Logging
-Getting readable logs is apparently nontrivial. Files written on ship volumes are not easy to read, and the archive (where we don't have to worry about space anyway) isn't always available. For now we just have a function defined in `io-lib` to wrap around the log function. By default it's effectively a no-op, but that's easy to change.
+Getting readable logs is apparently nontrivial. Files written on ship volumes are not easy to read, and the archive (where we don't have to worry about space anyway) isn't always available. For now we just have a function defined in `io-lib` to wrap around the log function. For now logging is always active.
 
 Ideally we'd like all lib files to have no dependencies, but since the logging wrapper is defined in `io-lib` we make an exception and have that as a dependency for _everything_.
 
