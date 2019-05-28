@@ -10,7 +10,6 @@ RUNONCEPATH("/lib/launch-lib").
 RUNONCEPATH("/lib/maneuver-lib").
 RUNONCEPATH("/lib/orbit-lib").
 RUNONCEPATH("/lib/sat4-lib").
-RUNONCEPATH("/lib/ship-lib").
 RUNONCEPATH("/lib/store-lib").
 debug("all libraries loaded").
 debug("").
@@ -160,9 +159,7 @@ delegates:ADD({
 	debug("delta v: " + delta_v).
 	ADD NODE(time_to_node, 0, 0, delta_v).
 	debug("insertion node: " + NEXTNODE).
-	LOCAL engstat IS engine_breakdown().
-	debug("engstat: " + engstat).
-	execute_grade_node(engstat, 120).
+	execute_grade_node(120).
 }).
 debug("insertion delegate: "+delegates[delegates:LENGTH-1]).
 debug("").
@@ -195,9 +192,7 @@ delegates:ADD({
 		}
 
 		debug("fix node: " + NEXTNODE).
-		LOCAL engstat IS engine_breakdown().
-		debug("engstat: " + engstat).
-		execute_normal_node(engstat, 90).
+		execute_normal_node(90).
 		debug("").
 	}
 }).
@@ -218,9 +213,7 @@ delegates:ADD({
 	debug("delta v: " + delta_v).
 	ADD NODE(time_to_node, 0, 0, delta_v).
 	debug("apoaps node: " + NEXTNODE).
-	LOCAL engstat IS engine_breakdown().
-	debug("engstat: " + engstat).
-	execute_grade_node(engstat, 120).
+	execute_grade_node(120).
 	debug("").
 }).
 debug("apoaps delegate: "+delegates[delegates:LENGTH - 1]).

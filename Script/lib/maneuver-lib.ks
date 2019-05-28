@@ -11,6 +11,213 @@ LOCAL FUNCTION get_normal {
     ((-1) * VCRS(SHIP:VELOCITY:ORBIT, BODY:POSITION)).
 }
 
+// merge two LEXICONs of LISTs into single LEXICON of LISTs
+//
+// PARAMETER l1: first LEXICON
+// PARAMETER l2: second LEXICON
+//
+// RETURN single LEXICON of LISTS
+LOCAL FUNCTION merge_lexicons {
+  PARAMETER l1.
+  PARAMETER l2.
+
+  LOCAL newlex IS LEXICON().
+
+  FOR key IN l1:KEYS {
+    IF (NOT newlex:HASKEY(key)) {
+      newlex:ADD(key, LIST()).
+    }
+
+    FOR item IN l1[key] {
+      newlex[key]:ADD(item).
+    }
+  }
+
+  FOR key IN l2:KEYS {
+    IF (NOT newlex:HASKEY(key)) {
+      newlex:ADD(key, LIST()).
+    }
+
+    FOR item IN l2[key] {
+      newlex[key]:ADD(item).
+    }
+  }
+
+  RETURN newlex.
+}
+
+// recursivly build PART LEXICON
+// given some PART, build a LEXICON of all children
+// sorted by section
+//
+// PARAMETER rt: "root" PART to consider
+// PARAMETER section: the section of the "root" PART
+//
+// RETURN a LEXICON of "root" PART and all children, sorted
+//  by section
+LOCAL FUNCTION part_lexicon {
+  PARAMETER rt.
+  PARAMETER section.
+
+  debug("processing " + rt:NAME).
+  debug("section: " + section).
+
+  LOCAL ptlex IS LEXICON(section, LIST()).
+  ptlex[section]:ADD(rt).
+
+  FOR pt IN rt:CHILDREN {
+    LOCAL sect IS section.
+    // check if pt is a separator
+    IF (pt:HASMODULE("ModuleDecouple")) {
+      SET sect TO (section + 1).
+    }
+
+    SET ptlex TO 
+      merge_lexicons(ptlex, part_lexicon(pt, sect)).
+  }
+
+  RETURN ptlex.
+}
+
+// get each part separated by *section*
+// we think of a section as a *true* stage,
+// since kOS determines stages... strangely
+//
+// RETURN a LEXICON with a list of parts per section
+LOCAL FUNCTION parts_by_section {
+  debug("sorting parts by section").
+  RETURN part_lexicon(SHIP:ROOTPART, 0).
+}
+
+// get the wet and dry mass of each section
+//
+// PARAMETER ptlex: LEXICON of PARTs to find masses
+//
+// RETURN a LEXICON with the masses of each stage
+//    wet_mass - wet mass for the stage
+//    dry_mass - dry mass for the stage
+LOCAL FUNCTION mass_by_section {
+  PARAMETER ptlex.
+
+  debug("getting the mass of each section").
+  debug("ptlex: " + ptlex).
+
+  LOCAL masslex IS LEXICON().
+  LOCAL totalmass IS 0.
+
+  FROM { LOCAL x IS 0. } 
+  UNTIL (x = ptlex:LENGTH) 
+  STEP { SET x TO (x + 1). } 
+  DO {
+    debug("calculating mass for stage " + x).
+    LOCAL stage_wet_mass IS 0.
+    LOCAL stage_dry_mass IS 0.
+    FOR pt IN ptlex[x] {
+      SET stage_wet_mass TO (stage_wet_mass + pt:MASS).
+      SET stage_dry_mass TO (stage_dry_mass + pt:DRYMASS).
+    }
+    debug("stage wet mass: " + stage_wet_mass).
+    debug("stage dry mass: " + stage_dry_mass).
+    masslex:ADD(x, LEXICON()).
+    masslex[x]:ADD("wet_mass", totalmass+stage_wet_mass).
+    masslex[x]:ADD("dry_mass", totalmass+stage_dry_mass).
+    SET totalmass TO (totalmass + stage_wet_mass).
+  }
+
+  RETURN masslex.
+}
+
+// get each engine sorted by section
+//
+// PARAMETER ptlex: LEXICON of PARTs to find ENGINEs from
+//
+// RETURN a LEXICON with a list of ENGINES per section
+LOCAL FUNCTION engines_by_section {
+  PARAMETER ptlex.
+
+  debug("sorting engines by section").
+  debug("ptlex: " + ptlex).
+
+  LIST ENGINES IN englst.
+  debug("englst: " + englst).
+
+  LOCAL englex IS LEXICON().
+
+  // examine each part and compare against list of engines
+  FOR sctnum IN ptlex:KEYS {
+    debug("sctnum: " + sctnum).
+    FOR pt IN ptlex[sctnum] {
+      debug("pt: " + pt:NAME).
+      IF englst:CONTAINS(pt) {
+        debug("----engine found").
+        IF (NOT englex:HASKEY(sctnum)) {
+          englex:ADD(sctnum, LIST()).
+        }
+        englex[sctnum]:ADD(pt).
+      }
+    }
+  }
+
+  RETURN englex.
+}
+
+// get the average specific impulse from a list of ENGINEs
+//
+// PARAMETER eng: LIST of ENGINEs to average
+//
+// RETURN the average specific impulse in seconds
+LOCAL FUNCTION average_isp {
+  PARAMETER eng.
+
+  debug("determining average Isp for engines: " + eng).
+
+  LOCAL sum IS 0.
+  FOR engine IN eng {
+    debug("engine: " + engine).
+    SET sum TO (sum + engine:ISP).
+  }
+
+  RETURN (sum / eng:LENGTH).
+}
+
+// get the total thrust from a list of ENGINEs
+//
+// PARAMETER eng: LIST of ENGINEs to total
+//
+// RETURN the total available thrust in kilonewtons
+LOCAL FUNCTION total_thrust {
+  PARAMETER eng.
+
+  debug("determining total thrust for engines: " + eng).
+
+  LOCAL sum IS 0.
+  FOR engine IN eng {
+    SET sum TO (sum + engine:POSSIBLETHRUST).
+  }
+
+  RETURN sum.
+}
+
+// calculate available deltaV
+//
+// PARAMETER isp: specific impulse in seconds
+// PARAMETER m0: initial mass in kilograms
+// PARAMETER mf: final mass in kilograms
+//
+// RETURN deltaV in meters per second
+LOCAL FUNCTION get_delta_v {
+  PARAMETER isp.
+  PARAMETER m0.
+  PARAMETER mf.
+
+  debug("getting deltaV").
+  debug("isp: " + isp).
+  debug("m0: " + m0).
+  debug("mf: " + mf).
+
+  RETURN (isp * CONSTANT:G0 * LN(m0 / mf)).
+}
+
 // calculate burn time to achieve a delta-v
 // accepts individual ship values instead of the ship
 // so that burn time can be calculated based on future state
@@ -38,6 +245,55 @@ LOCAL FUNCTION burn_time {
   RETURN (
     ((m0*ve)/(thrust)) * (1-(CONSTANT:E^(-1*(dv0/ve))))
   ).
+}
+
+// get a LEXICON with engine data seperated by section
+//
+// RETURN a LEXICON with engine data per section:
+//    delta_v - total deltaV available for the section
+//    isp - specific impulse for the section
+//    thrust - total thrust for the section
+//    m0 - start mass for the vessel during this section
+LOCAL FUNCTION engine_breakdown {
+  debug("determining engine values per stage").
+
+  LOCAL breakdown IS LEXICON().
+  LOCAL ptlex IS parts_by_section().
+  debug("ptlex: " + ptlex).
+  LOCAL englex IS engines_by_section(ptlex).
+  debug("englex: " + englex).
+  LOCAL masslex IS mass_by_section(ptlex).
+  debug("masslex: " + masslex).
+
+  FROM { LOCAL x IS 0. } 
+  UNTIL (x = englex:LENGTH) 
+  STEP { SET x TO (x + 1). } 
+  DO {
+    debug("determining parameters for stage: " + x).
+    breakdown:ADD(x, LEXICON()).
+
+    LOCAL stage_isp IS average_isp(englex[x]).
+    debug("stage_isp: " + stage_isp).
+    LOCAL stage_thrust IS total_thrust(englex[x]).
+    debug("stage_thrust: " + stage_thrust).
+    LOCAL stage_wet_mass IS masslex[x]["wet_mass"].
+    debug("stage_wet_mass: " + stage_wet_mass).
+    LOCAL stage_dry_mass IS masslex[x]["dry_mass"].
+    debug("stage_dry_mass: " + stage_dry_mass).
+    LOCAL stage_delta_v IS get_delta_v(
+      stage_isp, 
+      stage_wet_mass, 
+      stage_dry_mass
+    ).
+    debug("stage_delta_v: " + stage_delta_v).
+
+    breakdown[x]:ADD("delta_v", stage_delta_v).
+    breakdown[x]:ADD("isp", stage_isp).
+    breakdown[x]:ADD("thrust", stage_thrust).
+    breakdown[x]:ADD("m0", stage_wet_mass).
+  }
+
+  RETURN breakdown.
 }
 
 // determine time to burn for given dv
@@ -189,14 +445,15 @@ LOCAL FUNCTION node_execution {
 //
 // takes control from calling process
 //
-// PARAMETER engstat: LEXICON with engine stats by stage
 // PARAMETER margin: time in seconds to prep before node
 GLOBAL FUNCTION execute_node {
-  PARAMETER engstat.
   PARAMETER margin IS 60.
 
   debug("execute node by locking to node vector").
   debug("margin: " + margin).
+
+  LOCAL engstat IS engine_breakdown().
+  debug("engstat: " + engstat).
 
   LOCAL nd IS NEXTNODE.
   debug("nd: " + nd).
@@ -228,14 +485,15 @@ GLOBAL FUNCTION execute_node {
 //
 // takes control from calling process
 //
-// PARAMETER engstat: LEXICON with engine stats by stage
 // PARAMETER margin: time in seconds to prep before node
 GLOBAL FUNCTION execute_grade_node {
-  PARAMETER engstat.
   PARAMETER margin IS 60.
 
   debug("execute node by locking to prograde/retrograde").
   debug("margin: " + margin).
+
+  LOCAL engstat IS engine_breakdown().
+  debug("engstat: " + engstat).
 
   LOCAL nd IS NEXTNODE.
   debug("nd: " + nd).
@@ -283,14 +541,15 @@ GLOBAL FUNCTION execute_grade_node {
 //
 // takes control from calling process
 //
-// PARAMETER engstat: LEXICON with engine stats by stage
 // PARAMETER margin: time in seconds to prep before node
 GLOBAL FUNCTION execute_normal_node {
-  PARAMETER engstat.
   PARAMETER margin IS 60.
 
   debug("execute node by locking to normal/anti-normal").
   debug("margin: " + margin).
+
+  LOCAL engstat IS engine_breakdown().
+  debug("engstat: " + engstat).
 
   LOCAL nd IS NEXTNODE.
   debug("nd: " + nd).

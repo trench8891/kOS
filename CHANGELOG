@@ -1,7 +1,6 @@
-2.0.0
+1.0.1
 - DRYed up node execution code
 - Significantly improved burn time calculations and node execution steering
-- added ship-lib library
 - Significantly improved logging
 - Namespaced store
 
