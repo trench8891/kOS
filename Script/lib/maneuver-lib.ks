@@ -173,8 +173,8 @@ LOCAL FUNCTION average_isp {
 
   LOCAL sum IS 0.
   FOR engine IN eng {
-    debug("engine: " + engine).
-    SET sum TO (sum + engine:ISP).
+    debug(engine:NAME + ": " + engine:VISP).
+    SET sum TO (sum + engine:VISP).
   }
 
   RETURN (sum / eng:LENGTH).
@@ -192,6 +192,7 @@ LOCAL FUNCTION total_thrust {
 
   LOCAL sum IS 0.
   FOR engine IN eng {
+    debug(engine:NAME + ": " + engine:POSSIBLETHRUST).
     SET sum TO (sum + engine:POSSIBLETHRUST).
   }
 
@@ -272,10 +273,16 @@ LOCAL FUNCTION engine_breakdown {
     debug("determining parameters for stage: " + x).
     breakdown:ADD(x, LEXICON()).
 
-    LOCAL stage_isp IS average_isp(englex[x]).
+    LOCAL stage_isp IS 0.
+    LOCAL stage_thrust IS 0.
+
+    IF engine_lex:HASKEY(x) {
+      SET stage_isp TO average_isp(engine_lex[x]).
+      SET stage_thrust TO total_thrust(engine_lex[x]).
+    }
     debug("stage_isp: " + stage_isp).
-    LOCAL stage_thrust IS total_thrust(englex[x]).
     debug("stage_thrust: " + stage_thrust).
+    
     LOCAL stage_wet_mass IS masslex[x]["wet_mass"].
     debug("stage_wet_mass: " + stage_wet_mass).
     LOCAL stage_dry_mass IS masslex[x]["dry_mass"].
@@ -331,12 +338,15 @@ LOCAL FUNCTION burn_time_by_stage {
     }
 
     debug("stage_dv: " + stage_dv).
-    LOCAL stage_time IS burn_time(
-      stage_dv, 
-      engstat[x]["m0"], 
-      engstat[x]["isp"], 
-      engstat[x]["thrust"]
-    ).
+    LOCAL stage_time IS 0.
+    IF (stage_dv > 0) {
+      SET stage_time TO burn_time(
+        stage_dv, 
+        engstat[x]["m0"], 
+        engstat[x]["isp"], 
+        engstat[x]["thrust"]
+      ).
+    }
     debug("stage_time: " + stage_time).
     SET total_time TO (total_time + stage_time).
     debug("total_time: " + total_time).

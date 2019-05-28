@@ -221,6 +221,34 @@ GLOBAL FUNCTION launch_button {
   debug("").
 }
 
+// create gui with input for altitude and inclination and
+// button to trigger launch delegate
+GLOBAL FUNCTION basic_launch {
+  debug("building launch gui").
+
+  LOCAL gui IS GUI(200).
+  gui:ADDLABEL("altitude(m)").
+  LOCAL target_alt_field IS gui:ADDTEXTFIELD("100000").
+  gui:ADDLABEL("inclination (<0 launch descending)").
+  LOCAL target_inc_field IS gui:ADDTEXTFIELD("0").
+  LOCAL button IS gui:ADDBUTTON("LAUNCH").
+  gui:SHOW().
+  debug("waiting on button press").
+  UNTIL button:TAKEPRESS WAIT(0).
+  gui:HIDE().
+  debug("button pressed at " + TIME).
+  LOCAL target_alt IS target_alt_field:TEXT:TONUMBER().
+  debug("target_alt: " + target_alt).
+  LOCAL target_inc IS target_inc_field:TEXT:TONUMBER().
+  debug("target_inc: " + target_inc).
+
+  LOCAL data IS LAZcalc_init(target_alt, target_inc).
+  debug("performing launch").
+  perform_launch(data, target_alt).
+  debug("basic launch complete").
+  debug("").
+}
+
 // trigger launch delegate at a specific time
 //
 // PARAMETER ut: universal time (in seconds) to launch
