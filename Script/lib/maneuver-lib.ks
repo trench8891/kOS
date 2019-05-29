@@ -276,9 +276,9 @@ LOCAL FUNCTION engine_breakdown {
     LOCAL stage_isp IS 0.
     LOCAL stage_thrust IS 0.
 
-    IF engine_lex:HASKEY(x) {
-      SET stage_isp TO average_isp(engine_lex[x]).
-      SET stage_thrust TO total_thrust(engine_lex[x]).
+    IF englex:HASKEY(x) {
+      SET stage_isp TO average_isp(englex[x]).
+      SET stage_thrust TO total_thrust(englex[x]).
     }
     debug("stage_isp: " + stage_isp).
     debug("stage_thrust: " + stage_thrust).

@@ -7,7 +7,6 @@ RUNONCEPATH("/lib/io-lib").
 RUNONCEPATH("/lib/launch-lib").
 RUNONCEPATH("/lib/maneuver-lib").
 RUNONCEPATH("/lib/orbit-lib").
-RUNONCEPATH("/lib/ship-lib").
 debug("all libraries loaded").
 debug("").
 
