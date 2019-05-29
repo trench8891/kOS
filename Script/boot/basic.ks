@@ -38,9 +38,7 @@ delegates:ADD({
 	debug("preparing for orbital insertion at " + TIME).
 	ADD circularize_at_apoaps().
 	debug("insertion node: " + NEXTNODE).
-	LOCAL engstat IS engine_breakdown().
-	debug("engstat: " + engstat).
-	execute_grade_node(engstat, 120).
+	execute_grade_node(120).
 }).
 debug("insertion delegate: "+delegates[delegates:LENGTH-1]).
 debug("").
