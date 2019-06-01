@@ -325,3 +325,17 @@ GLOBAL FUNCTION time_to_dn {
 
   RETURN time_to_true_anomaly(orbit, tadn).
 }
+
+// calculate maneuver node to circularize orbit at apoaps
+//
+// RETURN a maneuver node that will circularize at apoaps
+GLOBAL FUNCTION circularize_at_apoaps {
+  LOCAL time_to_node IS (TIME:SECONDS + ETA:APOAPSIS).
+  debug("time to node: " + time_to_node).
+  LOCAL delta_v IS semimajor_axis_change(
+    SHIP:ORBIT, 
+    SHIP:ORBIT:APOAPSIS + SHIP:BODY:RADIUS
+  ).
+  debug("delta v: " + delta_v).
+  RETURN NODE(time_to_node, 0, 0, delta_v).
+}

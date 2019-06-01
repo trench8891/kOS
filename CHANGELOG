@@ -1,3 +1,7 @@
+1.1.0
+- extracted common boot actions to boot-common.ks
+- added basic.ks boot script
+
 1.0.1
 - DRYed up node execution code
 - Significantly improved burn time calculations and node execution steering
