@@ -31,9 +31,9 @@ GLOBAL FUNCTION namespace {
 
 // some startup stuff
 LOCAL logfile IS (
-  "0:/logs/" + 
+  "0:/data/" + 
   namespace() + 
-  "/" + 
+  "/logs/" + 
   SHIP:NAME:REPLACE(" ", "_") + 
   ".txt"
 ).

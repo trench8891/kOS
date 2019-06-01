@@ -5,7 +5,7 @@ RUNONCEPATH("/lib/io-lib").
 debug("loading " + SCRIPTPATH()).
 
 LOCAL store_location IS 
-	PATH("0:/store/" + namespace() + ".json").
+	PATH("0:/data/" + namespace() + "/store.json").
 debug("store location: " + store_location).
 
 // Retrieve the store
