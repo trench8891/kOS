@@ -10,4 +10,5 @@ blocks:
       jobs:
       - name: "kerbolint"
         commands:
+          - checkout
           - /bin/bash checks/kerbolint.sh
