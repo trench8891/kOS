@@ -3,7 +3,7 @@
 # matcher for ks scripts
 scriptspath="${SCRIPTS_PATH}"
 if [ -z "${scriptspath}" ]; then
-  scriptspath="Script/*.ks"
+  scriptspath="Script/"
 fi
 
 # maximum line length, use -1 to disable
@@ -21,17 +21,19 @@ function regerr() {
   linenum="${2}"
   message="${3}"
 
-  error="${scriptpath}:${linenum} #{message}"
+  error="${scriptpath}:${linenum} ${message}"
   errors+=("${error}")
 }
 
 # iterate over all scripts
-for script in ${scriptspath}; do
+for script in $(find ${scriptpath} -name "*.ks"); do
   # check line lengths
   readarray lines < "${script}"
   for i in ${!lines[@]}; do
+    line="${lines[${i}]}"
     if [ ${#line} -gt ${maxlinelength} ]; then
-      regerr ${script} ${i} "line is too long (${#line})"
+      let z=i+1
+      regerr ${script} ${z} "line is too long (${#line})"
     fi
   done
 
@@ -39,5 +41,14 @@ for script in ${scriptspath}; do
 done
 
 # print out any errors
+if [ ${#errors[@]} -eq 0 ]; then
+  echo "no issues found"
+  exit 0
+else
+  for error in ${errors[@]}; do
+    echo "${error}"
+  done
+fi
+
 echo "linter in progress"
 exit 1
