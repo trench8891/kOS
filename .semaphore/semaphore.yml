@@ -8,7 +8,7 @@ blocks:
   - name: "Kerboscript Linter"
     task:
       jobs:
-      - name: "kerbolint"
+      - name: "style checks"
         commands:
           - checkout
-          - /bin/bash checks/kerbolint.sh
+          - /bin/bash checks/style.sh
