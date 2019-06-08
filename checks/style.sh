@@ -3,6 +3,8 @@
 check_lazy_global_off="true"
 max_line_length=55
 scripts_path="Script"
+lazy_global_off_command="@LAZYGLOBAL OFF."
+ignorable_line_regex="^[:space:]*((//)|$)"
 
 usage_message="Usage: $(basename "${0}") [-hg] [-l <line-length-limit>] [-p scripts_path]
 
@@ -53,17 +55,25 @@ function regerr() {
 # iterate over all scripts
 for script in $(find ${scripts_path} -name "*.ks"); do
   let num_files=num_files+1
-  if [ ${max_line_length} -gt 0 ]; then
-    line_num=0
-    while read -r line; do
-      let line_num=line_num+1
+  line_num=0
+  check_lazy_global_script="${check_lazy_global_off}"
 
-      # check line length
-      if [ ${#line} -gt ${max_line_length} ]; then
-        regerr ${script} ${line_num} "line is too long (${#line})"
+  while read -r line; do
+    let line_num=line_num+1
+
+    # check lazy globals
+    if [[ "${check_lazy_global_script}" = "true" && ! "${line}" =~ ${ignorable_line_regex} ]]; then
+      check_lazy_global_script="false" # there's only one possible line we want to check, so either way we're done
+      if [[ "${line}" != "${lazy_global_off_command}" ]]; then
+        regerr ${script} ${line_num} "lazy globals not turned off"
       fi
-    done < "${script}"
-  fi
+    fi
+
+    # check line length
+    if [[ ${max_line_length} -gt 0 && ${#line} -gt ${max_line_length} ]]; then
+      regerr ${script} ${line_num} "line is too long (${#line})"
+    fi
+  done < "${script}"
 done
 
 for error in "${errors[@]}"; do
