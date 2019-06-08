@@ -1,21 +1,27 @@
 #!/bin/bash
 
-max_line_length=60
+check_lazy_global_off="true"
+max_line_length=55
 scripts_path="Script"
 
-usage_message="Usage: $(basename "${0}") [-h] [-l <line-length-limit>] [-p scripts_path]
+usage_message="Usage: $(basename "${0}") [-hg] [-l <line-length-limit>] [-p scripts_path]
 
 Options:
+
+      -g      Allow lazy globals to be left on
 
       -l      Set maximum line length. Use value < 1 to skip check. Default 60
 
       -p      Path to kOS scripts. Default \"Script\""
 
-while getopts hl:p: opt; do
+while getopts hgl:p: opt; do
   case ${opt} in 
     h) 
       printf "\n%s\n\n" "${usage_message}"
       exit 0
+      ;;
+    g)
+      check_lazy_global_off="false"
       ;;
     l)
       max_line_length=${OPTARG}
@@ -31,6 +37,9 @@ shift $((OPTIND-1))
 # declare array to hold errors
 declare -a errors
 
+# count number of files examined
+num_files=0
+
 # register an error
 function regerr() {
   script_path="${1}"
@@ -41,17 +50,15 @@ function regerr() {
   errors+=("${error}")
 }
 
-# count number of files examined
-num_files=0
-
 # iterate over all scripts
 for script in $(find ${scripts_path} -name "*.ks"); do
   let num_files=num_files+1
   if [ ${max_line_length} -gt 0 ]; then
-    # check line lengths
     line_num=0
     while read -r line; do
       let line_num=line_num+1
+
+      # check line length
       if [ ${#line} -gt ${max_line_length} ]; then
         regerr ${script} ${line_num} "line is too long (${#line})"
       fi

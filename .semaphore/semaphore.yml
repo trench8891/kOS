@@ -15,4 +15,4 @@ blocks:
       - name: "style checks"
         commands:
           - checkout
-          - /bin/bash checks/style.sh
+          - /bin/bash checks/style.sh -l 60
