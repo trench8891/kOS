@@ -9,7 +9,7 @@ Options:
 
       -l      Set maximum line length. Use value < 1 to skip check. Default 60
 
-      -p      Relative path to kOS scripts. Default \"Script\""
+      -p      Path to kOS scripts. Default \"Script\""
 
 while getopts hl:p: opt; do
   case ${opt} in 

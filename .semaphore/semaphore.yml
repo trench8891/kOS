@@ -8,6 +8,10 @@ blocks:
   - name: "Kerboscript Linter"
     task:
       jobs:
+      - name: "syntax checks"
+        commands:
+          - checkout
+          - /bin/bash checks/syntax.sh
       - name: "style checks"
         commands:
           - checkout
