@@ -16,3 +16,7 @@ blocks:
         commands:
           - checkout
           - /bin/bash checks/style.sh -l 60
+      - name: "workflow checks"
+        commands:
+          - checkout
+          - /bin/bash checks/repo.sh

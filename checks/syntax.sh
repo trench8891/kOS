@@ -1,12 +1,15 @@
 #!/bin/bash
 
 scripts_path="Script"
+
 identifier_regex="^[_a-zA-Z][_a-zA-Z0-9]*$"
 suffix_separator=":"
 
-usage_message="Usage: $(basename "${0}") [-hg] [-p scripts_path]
+usage_message="Usage: $(basename "${0}") [-h] [-p scripts_path]
 
 Options:
+
+      -h      Show this usage message
 
       -p      Path to kOS scripts. Default \"Script\""
 
