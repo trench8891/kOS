@@ -1,6 +1,6 @@
 #!/bin/bash
 
-check_lazy_global_off="true"
+check_lazy_global="true"
 max_line_length=55
 scripts_path="Script"
 lazy_global_off_command="@LAZYGLOBAL OFF."
@@ -56,7 +56,7 @@ function regerr() {
 for script in $(find ${scripts_path} -name "*.ks"); do
   let num_files=num_files+1
   line_num=0
-  check_lazy_global_script="${check_lazy_global_off}"
+  check_lazy_global_script="${check_lazy_global}"
 
   while read -r line; do
     let line_num=line_num+1
