@@ -9,6 +9,10 @@ scripts_path="Script"
 lazy_global_off_command="@LAZYGLOBAL OFF."
 ignorable_line_regex="^[:space:]*((//)|$)"
 
+function_regex="[Ff][Uu][Nn][Cc][Tt][Ii][Oo][Nn]"
+comment_function_regex="//.*[Ff][Uu][Nn][Cc][Tt][Ii][Oo][Nn]"
+explicit_scope_function_regex="(([Gg][Ll][Oo][Bb][Aa][Ll])|([Ll][Oo][Cc][Aa][Ll]))[:space]*[Ff][Uu][Nn][Cc][Tt][Ii][Oo][Nn]"
+
 declare -a instructions_and_keywords
 instructions_and_keywords+=("add")
 instructions_and_keywords+=("all")
@@ -169,10 +173,10 @@ for script in $(find ${scripts_path} -name "*.ks"); do
       fi
     fi
 
-    # TODO check explicit function scope
-    # file warning if FUNCTION appears outside a comment and not preceded by either LOCAL or GLOBAL
-    # FUNCTION, LOCAL, and GLOBAL keywords case insensitive
-    # if [[ "${check_fscope}" = "true" ]]
+    # check for explicitly scoped function
+    if [[ "${check_fscope}" = "true" && "${line}" =~ ${function_regex} && ! "${line}" =~ ${comment_function_regex} && ! "${line}" =~ ${explicit_scope_function_regex} ]]; then
+      regerr ${script} ${line_num} "implicitly scoped FUNCTION"
+    fi
 
     # TODO check instruction and keyword capitalization
 
