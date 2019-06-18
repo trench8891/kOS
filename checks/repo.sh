@@ -6,12 +6,12 @@ check_todos="true"
 check_version="true"
 check_changelog="true"
 scripts_path="Script"
+
 version_file=".version"
-version_regex="^([0-9]+\.){2}[0-9]+$"
+changelog_file="CHANGELOG"
 
 todo_regex="//[[:space:]]*[Tt][Oo][Dd][Oo]"
-
-failure="false"
+version_regex="^([0-9]+\.){2}[0-9]+$"
 
 usage_message="Usage: $(basename "${0}") [-htTvVcC] [-p scripts_path]
 
@@ -112,10 +112,10 @@ if [ "${#errors[@]}" -gt 0 ]; then
 fi
 
 base_branch=$(git show-branch -a | grep '\*' | grep -v `git rev-parse --abbrev-ref HEAD` | head -n1 | sed 's/.*\[\(.*\)\].*/\1/' | sed 's/[\^~].*//')
+current_version=$(cat "${version_file}")
 
 # check for valid version increment
 if [[ "${check_version}" = "true" ]]; then
-  current_version=$(cat "${version_file}")
   base_version=$(git show "${base_branch}":"${version_file}")
 
   if [[ ! "${current_version}" =~ ${version_regex} ]]; then
@@ -163,6 +163,12 @@ if [[ "${check_version}" = "true" ]]; then
   fi
 fi
 
-# TODO check for CHANGELOG update
+if [[ "${check_changelog}" = "true" ]]; then
+  changelog_version=$(head -n 1 "${changelog_file}")
+  if [[ $(head -n 1 "${changelog_file}") != "${current_version}" ]]; then
+    echo "CHANGELOG out of date"
+    exit 1
+  fi
+fi
 
 exit 0
