@@ -16,6 +16,7 @@ explicit_scope_function_regex="(([Gg][Ll][Oo][Bb][Aa][Ll])|([Ll][Oo][Cc][Aa][Ll]
 declare -a instructions_and_keywords
 instructions_and_keywords+=("add")
 instructions_and_keywords+=("all")
+instructions_and_keywords+=("and")
 instructions_and_keywords+=("at")
 instructions_and_keywords+=("batch")
 instructions_and_keywords+=("break")
@@ -29,6 +30,7 @@ instructions_and_keywords+=("do")
 instructions_and_keywords+=("do")
 instructions_and_keywords+=("edit")
 instructions_and_keywords+=("else")
+instructions_and_keywords+=("false")
 instructions_and_keywords+=("file")
 instructions_and_keywords+=("for")
 instructions_and_keywords+=("from")
@@ -37,13 +39,16 @@ instructions_and_keywords+=("function")
 instructions_and_keywords+=("global")
 instructions_and_keywords+=("if")
 instructions_and_keywords+=("in")
+instructions_and_keywords+=("is")
 instructions_and_keywords+=("list")
 instructions_and_keywords+=("local")
 instructions_and_keywords+=("lock")
 instructions_and_keywords+=("log")
+instructions_and_keywords+=("not")
 instructions_and_keywords+=("off")
 instructions_and_keywords+=("on")
 instructions_and_keywords+=("once")
+instructions_and_keywords+=("or")
 instructions_and_keywords+=("parameter")
 instructions_and_keywords+=("preserve")
 instructions_and_keywords+=("print")
@@ -59,6 +64,7 @@ instructions_and_keywords+=("switch")
 instructions_and_keywords+=("then")
 instructions_and_keywords+=("to")
 instructions_and_keywords+=("toggle")
+instructions_and_keywords+=("true")
 instructions_and_keywords+=("unlock")
 instructions_and_keywords+=("unset")
 instructions_and_keywords+=("until")
@@ -178,7 +184,17 @@ for script in $(find ${scripts_path} -name "*.ks"); do
       regerr ${script} ${line_num} "implicitly scoped FUNCTION"
     fi
 
-    # TODO check instruction and keyword capitalization
+    # check instruction and keyword capitalization
+    if [[ "${check_capitalization}" = "true" ]]; then
+      for word in "${instructions_and_keywords[@]}"; do
+        iak_regex="(^|[[:space:]])${word}([[:space:]]|$)"
+        comment_regex="//(.*[[:space:]])*${word}([[:space:]]|$)"
+        string_regex="\"(.*[[:space:]])*${word}([[:space:]].*)*\""
+        if [[ "${line}" =~ ${iak_regex} && ! "${line}" =~ ${comment_regex} && ! "${line}" =~ ${string_regex} ]]; then
+          regerr ${script} ${line_num} "lowercase keyword: ${word}"
+        fi
+      done
+    fi
 
     # check line length
     if [[ ${max_line_length} -gt 0 && ${#line} -gt ${max_line_length} ]]; then
