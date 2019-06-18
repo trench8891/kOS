@@ -72,6 +72,7 @@ instructions_and_keywords+=("function")
 instructions_and_keywords+=("global")
 instructions_and_keywords+=("if")
 instructions_and_keywords+=("in")
+instructions_and_keywords+=("is")
 instructions_and_keywords+=("list")
 instructions_and_keywords+=("local")
 instructions_and_keywords+=("lock")
@@ -126,7 +127,9 @@ function regerr() {
   errors+=("${error}")
 }
 
-# # iterate over all scripts
-# for script in $(find ${scripts_path} -name "*.ks"); do
-
-# done
+# iterate over all scripts
+for script in $(find ${scripts_path} -name "*.ks"); do
+  for word in $(cat "${script}"); do
+    :
+  done
+done
