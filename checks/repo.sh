@@ -1,9 +1,17 @@
 #!/bin/bash
 
+set -e
+
 check_todos="true"
 check_version="true"
 check_changelog="true"
 scripts_path="Script"
+version_file=".version"
+version_regex="^([0-9]+\.){2}[0-9]+$"
+
+todo_regex="//[[:space:]]*[Tt][Oo][Dd][Oo]"
+
+failure="false"
 
 usage_message="Usage: $(basename "${0}") [-htTvVcC] [-p scripts_path]
 
@@ -79,8 +87,58 @@ function regerr() {
   errors+=("${error}")
 }
 
-# TODO check for TODOs
+# determine base branch
+function base_branch() {
+  git show-branch -a | grep '\*' | grep -v `git rev-parse --abbrev-ref HEAD` | head -n1 | sed 's/.*\[\(.*\)\].*/\1/' | sed 's/[\^~].*//'
+}
 
-# TODO check for version bump
+# parse a version
+function parse_version() {
+  version_string="${1}"
+
+  # verify version string
+  if [[ ! "${version_string}" =~ ${version_regex} ]]; then
+    echo "invalid version: ${version_string}" >&2
+    exit 1
+  fi
+
+  IFS='.' read -ra split_version <<< "${version_string}"
+  printf "${split_version[0]} ${split_version[1]} ${split_version[2]}"
+}
+
+# iterate over all scripts
+for script in $(find ${scripts_path} -name "*.ks"); do
+  let num_files=num_files+1
+  line_num=0
+
+  while read -r line; do
+    let line_num=line_num+1
+
+    # check for TODOs
+    if [[ "${check_todos}" = "true" && "${line}" =~ ${todo_regex} ]]; then
+      regerr ${script} ${line_num} "unresolved TODO"
+    fi
+  done < "${script}"
+done
+
+# print out any errors
+if [ "${#errors[@]}" -gt 0 ]; then
+  for error in "${errors[@]}"; do
+    echo "${error}"
+  done
+  echo "found ${#errors[@]} TODOs in ${num_files} files"
+  failure="true"
+fi
+
+
+
+current_version=$(parse_version $(cat "${version_file}"))
+base_version=$(parse_version $(git show "${base_branch}":"${version_file}"))
 
 # TODO check for CHANGELOG update
+
+if [[ "${failure}" = "true" ]]; then
+  exit 1
+else
+  exit 0
+fi

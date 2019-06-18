@@ -7,11 +7,11 @@ max_line_length=55
 scripts_path="Script"
 
 lazy_global_off_command="@LAZYGLOBAL OFF."
-ignorable_line_regex="^[:space:]*((//)|$)"
+ignorable_line_regex="^[[:space:]]*((//)|$)"
 
 function_regex="[Ff][Uu][Nn][Cc][Tt][Ii][Oo][Nn]"
 comment_function_regex="//.*[Ff][Uu][Nn][Cc][Tt][Ii][Oo][Nn]"
-explicit_scope_function_regex="(([Gg][Ll][Oo][Bb][Aa][Ll])|([Ll][Oo][Cc][Aa][Ll]))[:space]*[Ff][Uu][Nn][Cc][Tt][Ii][Oo][Nn]"
+explicit_scope_function_regex="(([Gg][Ll][Oo][Bb][Aa][Ll])|([Ll][Oo][Cc][Aa][Ll]))[[:space:]]*[Ff][Uu][Nn][Cc][Tt][Ii][Oo][Nn]"
 
 declare -a instructions_and_keywords
 instructions_and_keywords+=("add")
@@ -187,12 +187,12 @@ for script in $(find ${scripts_path} -name "*.ks"); do
   done < "${script}"
 done
 
+# print out any errors
 for error in "${errors[@]}"; do
   echo "${error}"
 done
 echo "found ${#errors[@]} errors in ${num_files} files"
 
-# print out any errors
 if [ "${#errors[@]}" -gt 0 ]; then
   exit 1
 else
