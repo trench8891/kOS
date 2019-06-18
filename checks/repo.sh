@@ -23,9 +23,9 @@ Options:
 
       -T      Perform TODO check ONLY. Conflicts with -t, -V, and -C
 
-      -v      Exclude version bump check
+      -v      Exclude version increment check
 
-      -V      Perform version bump check ONLY. Conflicts with -v, -T, and -C
+      -V      Perform version increment check ONLY. Conflicts with -v, -T, and -C
 
       -c      Exclude CHANGELOG check
 
@@ -87,20 +87,6 @@ function regerr() {
   errors+=("${error}")
 }
 
-# # parse a version
-# function parse_version() {
-#   version_string="${1}"
-
-#   # verify version string
-#   if [[ ! "${version_string}" =~ ${version_regex} ]]; then
-#     echo "invalid version: ${version_string}" >&2
-#     exit 1
-#   fi
-
-#   IFS='.' read -ra split_version <<< "${version_string}"
-#   printf "${split_version[0]} ${split_version[1]} ${split_version[2]}"
-# }
-
 # iterate over all scripts
 for script in $(find ${scripts_path} -name "*.ks"); do
   let num_files=num_files+1
@@ -122,31 +108,61 @@ if [ "${#errors[@]}" -gt 0 ]; then
     echo "${error}"
   done
   echo "found ${#errors[@]} TODOs in ${num_files} files"
-  failure="true"
+  exit 1
 fi
 
 base_branch=$(git show-branch -a | grep '\*' | grep -v `git rev-parse --abbrev-ref HEAD` | head -n1 | sed 's/.*\[\(.*\)\].*/\1/' | sed 's/[\^~].*//')
 
-current_version=$(cat "${version_file}")
-base_version=$(git show "${base_branch}":"${version_file}")
+# check for valid version increment
+if [[ "${check_version}" = "true" ]]; then
+  current_version=$(cat "${version_file}")
+  base_version=$(git show "${base_branch}":"${version_file}")
 
-if [[ ! "${current_version}" =~ ${version_regex} ]]; then
-  echo "invalid version on branch: ${current_version}"
-  failure="true"
+  if [[ ! "${current_version}" =~ ${version_regex} ]]; then
+    echo "invalid version on branch: ${current_version}"
+    exit 1
+  fi
+
+  if [[ ! "${base_version}" =~ ${version_regex} ]]; then
+    echo "invalid base version: ${base_version}"
+    exit 1
+  fi
+
+  IFS='.' read -ra current_v_a <<< "${current_version}"
+  IFS='.' read -ra base_v_a <<< "${base_version}"
+
+  if [[ ${current_v_a[0]} -eq $(expr ${base_v_a[0]} + 1) ]]; then
+    if [[ ${current_v_a[1]} -ne 0 ]]; then
+      echo "invalid minor version increment: ${base_v_a[0]}.${base_v_a[1]} -> ${current_v_a[0]}.${current_v_a[1]}"
+      exit 1
+    elif [[ ${current_v_a[2]} -ne 0 ]]; then
+      echo "invalid patch version increment: ${base_version} -> ${current_version}"
+      exit 1
+    fi
+  elif [[ ${current_v_a[0]} -eq ${base_v_a[0]} ]]; then
+    if [[ ${current_v_a[1]} -eq $(expr ${base_v_a[1]} + 1) ]]; then
+      if [[ ${current_v_a[2]} -ne 0 ]]; then
+        echo "invalid patch version increment: ${base_version} -> ${current_version}"
+        exit 1
+      fi
+    elif [[ ${current_v_a[1]} -eq ${base_v_a[1]} ]]; then
+      if [[ ${current_v_a[2]} -eq ${base_v_a[2]} ]]; then
+        echo "no version increment detected: ${base_version} -> ${current_version}"
+        exit 1
+      elif [[ ${current_v_a[2]} -ne $(expr ${base_v_a[2]} + 1) ]]; then
+        echo "invalid patch version increment: ${base_version} -> ${current_version}"
+        exit 1
+      fi
+    else
+      echo "invalid minor version increment: ${base_v_a[0]}.${base_v_a[1]} -> ${current_v_a[0]}.${current_v_a[1]}"
+      exit 1
+    fi
+  else
+    echo "invalid major version increment: ${base_v_a[0]} -> ${current_v_a[0]}"
+    exit 1
+  fi
 fi
-
-if [[ ! "${base_version}" =~ ${version_regex} ]]; then
-  echo "invalid base version: ${base_version}"
-  failure="true"
-fi
-
-echo "${current_version}"
-echo "${base_version}"
 
 # TODO check for CHANGELOG update
 
-if [[ "${failure}" = "true" ]]; then
-  exit 1
-else
-  exit 0
-fi
+exit 0
