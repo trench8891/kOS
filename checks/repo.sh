@@ -87,24 +87,19 @@ function regerr() {
   errors+=("${error}")
 }
 
-# determine base branch
-function base_branch() {
-  git show-branch -a | grep '\*' | grep -v `git rev-parse --abbrev-ref HEAD` | head -n1 | sed 's/.*\[\(.*\)\].*/\1/' | sed 's/[\^~].*//'
-}
+# # parse a version
+# function parse_version() {
+#   version_string="${1}"
 
-# parse a version
-function parse_version() {
-  version_string="${1}"
+#   # verify version string
+#   if [[ ! "${version_string}" =~ ${version_regex} ]]; then
+#     echo "invalid version: ${version_string}" >&2
+#     exit 1
+#   fi
 
-  # verify version string
-  if [[ ! "${version_string}" =~ ${version_regex} ]]; then
-    echo "invalid version: ${version_string}" >&2
-    exit 1
-  fi
-
-  IFS='.' read -ra split_version <<< "${version_string}"
-  printf "${split_version[0]} ${split_version[1]} ${split_version[2]}"
-}
+#   IFS='.' read -ra split_version <<< "${version_string}"
+#   printf "${split_version[0]} ${split_version[1]} ${split_version[2]}"
+# }
 
 # iterate over all scripts
 for script in $(find ${scripts_path} -name "*.ks"); do
@@ -130,10 +125,23 @@ if [ "${#errors[@]}" -gt 0 ]; then
   failure="true"
 fi
 
+base_branch=$(git show-branch -a | grep '\*' | grep -v `git rev-parse --abbrev-ref HEAD` | head -n1 | sed 's/.*\[\(.*\)\].*/\1/' | sed 's/[\^~].*//')
 
+current_version=$(cat "${version_file}")
+base_version=$(git show "${base_branch}":"${version_file}")
 
-current_version=$(parse_version $(cat "${version_file}"))
-base_version=$(parse_version $(git show "${base_branch}":"${version_file}"))
+if [[ ! "${current_version}" =~ ${version_regex} ]]; then
+  echo "invalid version on branch: ${current_version}"
+  failure="true"
+fi
+
+if [[ ! "${base_version}" =~ ${version_regex} ]]; then
+  echo "invalid base version: ${base_version}"
+  failure="true"
+fi
+
+echo "${current_version}"
+echo "${base_version}"
 
 # TODO check for CHANGELOG update
 
