@@ -180,7 +180,6 @@ for script in $(find ${scripts_path} -name "*.ks"); do
   let num_files=num_files+1
   line_num=0
   check_lazy_global_script="${check_lazy_global}"
-  blankline="false"
 
   while read -r line; do
     let line_num=line_num+1
@@ -210,14 +209,15 @@ for script in $(find ${scripts_path} -name "*.ks"); do
       done
     fi
 
-    # check if line is blank
-    if [[ "${line}" =~  ]]
-
     # check line length
     if [[ ${max_line_length} -gt 0 && ${#line} -gt ${max_line_length} ]]; then
       regerr ${script} ${line_num} "line is too long (${#line})"
     fi
   done < "${script}"
+
+  if [[ "${check_newline}" = "true" && -n "$(tail -c 1 "${script}")" ]]; then
+    regerr ${script} $((line_num + 1)) "missing newline"
+  fi
 done
 
 # print out any errors
