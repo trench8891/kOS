@@ -3,6 +3,7 @@
 check_lazy_global="true"
 check_fscope="true"
 check_capitalization="true"
+check_newline="true"
 max_line_length=55
 scripts_path="Script"
 
@@ -70,7 +71,7 @@ instructions_and_keywords+=("volume")
 instructions_and_keywords+=("wait")
 instructions_and_keywords+=("when")
 
-usage_message="Usage: $(basename "${0}") [-hgGfFcC] [-l <line-length-limit>] [-L <line-length-limit>] [-p scripts_path]
+usage_message="Usage: $(basename "${0}") [-hgGfFcCnN] [-l <line-length-limit>] [-L <line-length-limit>] [-p scripts_path]
 
 Options:
 
@@ -78,23 +79,23 @@ Options:
 
       -g      Exclude lazy globals off check
 
-      -G      Perform lazy globals off check ONLY. Conflicts with -g, -L, -F, and -C
+      -G      Perform lazy globals off check ONLY. Conflicts with -g, -L, -F, -C, and -N
 
       -f      Exclude explicit function scope check
 
-      -F      Perform explicit function scope check ONLY. Conflicts with -f, -G, -C, and -L
+      -F      Perform explicit function scope check ONLY. Conflicts with -f, -G, -C, -N, and -L
 
       -c      Exclude instruction and keyword capitalization check
 
-      -C      Perform instruction and keyword capitalization check ONLY. Conflicts with -c, -G, -F, and -L
+      -C      Perform instruction and keyword capitalization check ONLY. Conflicts with -c, -G, -F, -N, and -L
 
       -l      Set maximum line length. Use value < 1 to skip check. Default 55
 
-      -L      Perform line length check (using provided maximum length) ONLY. Conflicts with -l, -G, -F, and -C
+      -L      Perform line length check (using provided maximum length) ONLY. Conflicts with -l, -G, -F, -C, and -N
 
       -p      Path to kOS scripts. Default \"Script\""
 
-while getopts hgGfFcCl:L:p: opt; do
+while getopts hgGfFcCnNl:L:p: opt; do
   case ${opt} in 
     h) 
       printf "\n%s\n\n" "${usage_message}"
@@ -107,6 +108,7 @@ while getopts hgGfFcCl:L:p: opt; do
       check_lazy_global="true"
       check_fscope="false"
       check_capitalization="false"
+      check_newline="false"
       max_line_length=0
       ;;
     f)
@@ -116,6 +118,7 @@ while getopts hgGfFcCl:L:p: opt; do
       check_fscope="true"
       check_lazy_global="false"
       check_capitalization="false"
+      check_newline="false"
       max_line_length=0
       ;;
     c)
@@ -125,6 +128,17 @@ while getopts hgGfFcCl:L:p: opt; do
       check_capitalization="true"
       check_lazy_global="false"
       check_fscope="false"
+      check_newline="false"
+      max_line_length=0
+      ;;
+    n)
+      check_newline="false"
+      ;;
+    N)
+      check_newline="true"
+      check_lazy_global="false"
+      check_fscope="false"
+      check_capitalization="false"
       max_line_length=0
       ;;
     l)
@@ -135,6 +149,7 @@ while getopts hgGfFcCl:L:p: opt; do
       check_lazy_global="false"
       check_fscope="false"
       check_capitalization="false"
+      check_newline="false"
       ;;
     p)
       scripts_path="${OPTARG}"
@@ -165,6 +180,7 @@ for script in $(find ${scripts_path} -name "*.ks"); do
   let num_files=num_files+1
   line_num=0
   check_lazy_global_script="${check_lazy_global}"
+  blankline="false"
 
   while read -r line; do
     let line_num=line_num+1
@@ -193,6 +209,9 @@ for script in $(find ${scripts_path} -name "*.ks"); do
         fi
       done
     fi
+
+    # check if line is blank
+    if [[ "${line}" =~  ]]
 
     # check line length
     if [[ ${max_line_length} -gt 0 && ${#line} -gt ${max_line_length} ]]; then
