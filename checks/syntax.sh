@@ -117,6 +117,9 @@ declare -a errors
 # count number of files examined
 num_files=0
 
+# count number of files examined
+num_files=0
+
 # register an error
 function regerr() {
   script_path="${1}"
@@ -129,7 +132,25 @@ function regerr() {
 
 # iterate over all scripts
 for script in $(find ${scripts_path} -name "*.ks"); do
-  for word in $(cat "${script}"); do
-    :
-  done
+  let num_files=num_files+1
+  line_num=0
+  lazyglobal="on"
+  mode="start"
+
+  while read -r line; do
+    let line_num=line_num+1
+    tail="${line}"
+
+    while [[ -n "${tail}" ]]; do
+      if [[ "${tail}" =~ ^// ]]; then
+        tail=""
+      else
+        case ${mode} in
+          start)
+            :
+            ;;
+        esac
+      fi
+    done
+  done < "${script}"
 done
