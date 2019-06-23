@@ -135,6 +135,7 @@ for script in $(find ${scripts_path} -name "*.ks"); do
   let num_files=num_files+1
   line_num=0
   lazyglobal="on"
+  instruction_count=0
   mode="start"
 
   while read -r line; do
@@ -147,8 +148,17 @@ for script in $(find ${scripts_path} -name "*.ks"); do
       else
         case ${mode} in
           start)
-            :
+            if [[ "${tail}" =~ ^@ ]]; then
+              mode="directive"
+              tail="${tail:1}"
+              echo "${tail}"
+            else
+              tail=""
+            fi
             ;;
+          *)
+            echo "unknown mode: ${mode}"
+            exit 1
         esac
       fi
     done
