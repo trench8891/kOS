@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 scripts_path="Script"
 
 identifier_regex="^[_a-zA-Z][_a-zA-Z0-9]*$"
@@ -27,93 +29,6 @@ done
 
 shift $((OPTIND-1))
 
-declare -a arithmetic_operators
-arithmetic_operators+=("+")
-arithmetic_operators+=("-")
-arithmetic_operators+=("*")
-arithmetic_operators+=("/")
-arithmetic_operators+=("^")
-arithmetic_operators+=("e")
-arithmetic_operators+=("(")
-arithmetic_operators+=(")")
-
-declare -a logic_operators
-logic_operators+=("not")
-logic_operators+=("and")
-logic_operators+=("or")
-logic_operators+=("true")
-logic_operators+=("false")
-logic_operators+=("<>")
-logic_operators+=(">=")
-logic_operators+=("<=")
-logic_operators+=("=")
-logic_operators+=(">")
-logic_operators+=("<")
-
-declare -a instructions_and_keywords
-instructions_and_keywords+=("add")
-instructions_and_keywords+=("all")
-instructions_and_keywords+=("at")
-instructions_and_keywords+=("batch")
-instructions_and_keywords+=("break")
-instructions_and_keywords+=("clearscreen")
-instructions_and_keywords+=("compile")
-instructions_and_keywords+=("copy")
-instructions_and_keywords+=("declare")
-instructions_and_keywords+=("delete")
-instructions_and_keywords+=("deploy")
-instructions_and_keywords+=("do")
-instructions_and_keywords+=("edit")
-instructions_and_keywords+=("else")
-instructions_and_keywords+=("file")
-instructions_and_keywords+=("for")
-instructions_and_keywords+=("from")
-instructions_and_keywords+=("function")
-instructions_and_keywords+=("global")
-instructions_and_keywords+=("if")
-instructions_and_keywords+=("in")
-instructions_and_keywords+=("is")
-instructions_and_keywords+=("list")
-instructions_and_keywords+=("local")
-instructions_and_keywords+=("lock")
-instructions_and_keywords+=("log")
-instructions_and_keywords+=("off")
-instructions_and_keywords+=("on")
-instructions_and_keywords+=("once")
-instructions_and_keywords+=("parameter")
-instructions_and_keywords+=("preserve")
-instructions_and_keywords+=("print")
-instructions_and_keywords+=("reboot")
-instructions_and_keywords+=("remove")
-instructions_and_keywords+=("rename")
-instructions_and_keywords+=("run")
-instructions_and_keywords+=("set")
-instructions_and_keywords+=("shutdown")
-instructions_and_keywords+=("stage")
-instructions_and_keywords+=("step")
-instructions_and_keywords+=("switch")
-instructions_and_keywords+=("then")
-instructions_and_keywords+=("to")
-instructions_and_keywords+=("toggle")
-instructions_and_keywords+=("unlock")
-instructions_and_keywords+=("unset")
-instructions_and_keywords+=("until")
-instructions_and_keywords+=("volume")
-instructions_and_keywords+=("wait")
-instructions_and_keywords+=("when")
-
-declare -a other_symbols
-other_symbols+=("{")
-other_symbols+=("}")
-other_symbols+=("[")
-other_symbols+=("]")
-other_symbols+=(",")
-other_symbols+=(":")
-other_symbols+=("//")
-
-# declare array to hold errors
-declare -a errors
-
 # count number of files examined
 num_files=0
 
@@ -121,13 +36,12 @@ num_files=0
 num_files=0
 
 # register an error
-function regerr() {
+function printerr() {
   script_path="${1}"
   linenum="${2}"
   message="${3}"
 
-  error="${script_path}:${linenum} ${message}"
-  errors+=("${error}")
+  echo "${script_path}:${linenum} ${message}"
 }
 
 # iterate over all scripts
@@ -151,9 +65,23 @@ for script in $(find ${scripts_path} -name "*.ks"); do
             if [[ "${tail}" =~ ^@ ]]; then
               mode="directive"
               tail="${tail:1}"
-              echo "${tail}"
             else
-              tail=""
+              printerr ${script} ${line_num} "unknown command: $(echo "${tail}" | sed 's/[[:space:](:].*$//')"
+              exit 1
+            fi
+            ;;
+          directive)
+            if [[ ${instruction_count} -gt 0 ]]; then
+              printerr ${script} ${line_num} "compiler directives must precede commands"
+              exit 1
+            else
+              if [[ "${tail}" =~ ^[Ll][Aa][Zz][Yy][Gg][Ll][Oo][Bb][Aa][Ll][[:space:]$] ]]; then
+                tail=$(echo "${tail}" | sed -E 's/^[Ll][Aa][Zz][Yy][Gg][Ll][Oo][Bb][Aa][Ll][[:space:]$]+//')
+                mode="lazyGlobal"
+              else
+                printerr ${script} ${line_num} "unknown compiler directive: $(echo "${tail}" | sed 's/[[:space:]].*$//')"
+                exit 1
+              fi
             fi
             ;;
           *)

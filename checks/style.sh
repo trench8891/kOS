@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 check_lazy_global="true"
 check_fscope="true"
 check_capitalization="true"
