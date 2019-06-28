@@ -83,7 +83,7 @@ for script in $(find ${scripts_path} -name "*.ks"); do
             if [[ ${instruction_count} -gt 0 ]]; then
               regerr ${script} ${line_num} "compiler directives must precede commands"
             else
-              if [[ "${tail}" =~ ^[Ll][Aa][Zz][Yy][Gg][Ll][Oo][Bb][Aa][Ll][^_[:alnum:]]? ]]; then
+              if [[ "${tail}" =~ ^[Ll][Aa][Zz][Yy][Gg][Ll][Oo][Bb][Aa][Ll]([^_[:alnum:]]|$) ]]; then
                 tail=$(echo "${tail}" | sed -E 's/^[Ll][Aa][Zz][Yy][Gg][Ll][Oo][Bb][Aa][Ll][[:space:]]*//')
                 mode="lazyGlobal"
               else
@@ -92,11 +92,11 @@ for script in $(find ${scripts_path} -name "*.ks"); do
             fi
             ;;
           lazyGlobal)
-            if [[ "${tail}" =~ ^[Oo][Ff][Ff][^_[:alnum:]]? ]]; then
+            if [[ "${tail}" =~ ^[Oo][Ff][Ff]([^_[:alnum:]]|$) ]]; then
               lazyglobal="off"
               tail=$(echo "${tail}" | sed -E 's/^[Oo][Ff][Ff][[:space:]]*//')
               mode="expectPeriod"
-            elif [[ "${tail}" =~ ^[Oo][Nn][^_[:alnum:]]? ]]; then
+            elif [[ "${tail}" =~ ^[Oo][Nn]([^_[:alnum:]]|$) ]]; then
               lazyglobal="on"
               tail=$(echo "${tail}" | sed -E 's/^[Oo][Nn][[:space:]]*//')
               mode="expectPeriod"
