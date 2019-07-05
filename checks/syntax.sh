@@ -1,9 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -e
 
 scripts_path="Script"
 separator_regex="([^_[:alnum:]]|$)"
+identifier_regex="[_[:alpha:]][_[:alnum:]]*"
 
 tail=""
 
@@ -49,7 +50,13 @@ function regerr() {
 
 # drop the head of the tail
 function swallow_tail() {
-  
+  word="${1}"
+  sedstring='s/^'
+  for i in $(seq 1 ${#word}); do
+    sedstring="${sedstring}[$(echo ${word:i-1:1} | sed 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/')$(echo ${word:i-1:1} | sed 'y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/')]"
+  done
+  sedstring="${sedstring}[[:space:]]*//"
+  tail=$(echo "${tail}" | sed ${sedstring})
 }
 
 # iterate over all scripts
@@ -84,11 +91,11 @@ for script in $(find ${scripts_path} -name "*.ks"); do
               tail="${tail:1}"
               mode="directive"
             elif [[ "${tail}" =~ ^[Dd][Ee][Cc][Ll][Aa][Rr][Ee]${separator_regex} ]]; then
-              tail=$(echo "${tail}" | sed 's/^[Dd][Ee][Cc][Ll][Aa][Rr][Ee][[:space:]]*//')
+              swallow_tail "declare"
               directives_valid="false"
               mode="declare"
             elif [[ "${tail}" =~ ^[Pp][Aa][Rr][Aa][Mm][Ee][Tt][Ee][Rr]${separator_regex} ]]; then
-              tail=$(echo "${tail}" | sed 's/^[Pp][Aa][Rr][Aa][Mm][Ee][Tt][Ee][Rr][[:space:]]*//')
+              swallow_tail "parameter"
               directives_valid="false"
               mode="declareParameter"
             else
@@ -100,7 +107,7 @@ for script in $(find ${scripts_path} -name "*.ks"); do
               regerr ${script} ${line_num} "compiler directives must precede commands"
             else
               if [[ "${tail}" =~ ^[Ll][Aa][Zz][Yy][Gg][Ll][Oo][Bb][Aa][Ll]${separator_regex} ]]; then
-                tail=$(echo "${tail}" | sed 's/^[Ll][Aa][Zz][Yy][Gg][Ll][Oo][Bb][Aa][Ll][[:space:]]*//')
+                swallow_tail "lazyglobal"
                 mode="lazyGlobal"
               else
                 regerr ${script} ${line_num} "unknown compiler directive: $(echo "${tail}" | sed 's/[^_[:alnum:]].*$//')"
@@ -110,11 +117,11 @@ for script in $(find ${scripts_path} -name "*.ks"); do
           lazyGlobal)
             if [[ "${tail}" =~ ^[Oo][Ff][Ff]${separator_regex} ]]; then
               lazyglobal="off"
-              tail=$(echo "${tail}" | sed 's/^[Oo][Ff][Ff][[:space:]]*//')
+              swallow_tail "off"
               mode="expectPeriod"
             elif [[ "${tail}" =~ ^[Oo][Nn]${separator_regex} ]]; then
               lazyglobal="on"
-              tail=$(echo "${tail}" | sed 's/^[Oo][Nn][[:space:]]*//')
+              swallow_tail "on"
               mode="expectPeriod"
             elif [[ "${tail}" =~ ^[^_[:alnum:]] ]]; then
               regerr ${script} ${line_num} "unexpected separator: \"${tail:0:1}\""
@@ -132,17 +139,21 @@ for script in $(find ${scripts_path} -name "*.ks"); do
             ;;
           declare)
             if [[ "${tail}" =~ ^[Pp][Aa][Rr][Aa][Mm][Ee][Tt][Ee][Rr]${separator_regex} ]]; then
-              tail=$(echo "${tail}" | sed 's/^[Pp][Aa][Rr][Aa][Mm][Ee][Tt][Ee][Rr][[:space:]]*//')
+              swallow_tail "parameter"
               mode="declareParameter"
             else
               regerr ${script} ${line_num} "unknown DECLARE statement: $(echo "${tail}" | sed 's/[^_[:alnum:]].*$//')"
             fi
             ;;
-          # declareParameter)
-            
-          #   ;;
+          declareParameter)
+            if [[ "${tail}" =~ ^${identifier_regex}${separator_regex} ]]; then
+              tail=$(echo "${tail}" | sed "s/${identifier_regex}//")
+              mode="expectPeriod"
+            else
+              regerr ${script} ${line_num} "invalid identifier: $(echo "${tail}" | sed 's/[^_[:alnum:]].*$//')"
+            fi 
+            ;;
           *)
-            echo "${tail}"
             regerr ${script} ${line_num} "unknown mode: ${mode}"
         esac
       fi
