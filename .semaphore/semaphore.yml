@@ -5,13 +5,6 @@ agent:
     type: e1-standard-2
     os_image: ubuntu1804
 blocks:
-  - name: "Versions"
-    task:
-      jobs:
-        - name: "bash version"
-        commands:
-          - checkout
-          - /bin/bash bash --version
   - name: "Kerboscript Linter"
     task:
       jobs:
