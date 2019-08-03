@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 set -e
+shopt -s extglob
 
 scripts_path="Script"
 separator_regex="([^_[:alnum:]]|$)"
@@ -8,19 +9,27 @@ identifier_regex="[_[:alpha:]][_[:alnum:]]*"
 
 tail=""
 
-usage_message="Usage: $(basename "${0}") [-h] [-p scripts_path]
+usage_message="Usage: $(basename "${0}") [-hl] [-p scripts_path]
 
 Options:
 
       -h      Show this usage message
 
+      -l      Lenient mode. By default references to identifiers not explicitly declared will cause an error.
+              In lenient mode, any unknown identifiers in a non-boot script will be assumed to have been defined elsewhere
+              with GLOBAL scope.
+              Identifiers in scripts in the boot directory however must ALWAYS be explicitly defined.
+
       -p      Path to kOS scripts. Default \"Script\""
 
-while getopts hp: opt; do
+while getopts hlp: opt; do
   case ${opt} in 
     h) 
       printf "\n%s\n\n" "${usage_message}"
       exit 0
+      ;;
+    l)
+      lenient_mode="true"
       ;;
     p)
       scripts_path="${OPTARG}"
@@ -51,12 +60,22 @@ function regerr() {
 # drop the head of the tail
 function swallow_tail() {
   word="${1}"
-  sedstring='s/^'
+  # sedstring='s/^'
+  # for i in $(seq 1 ${#word}); do
+  #   sedstring="${sedstring}[$(echo ${word:i-1:1} | sed 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/')$(echo ${word:i-1:1} | sed 'y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/')]"
+  # done
+  # sedstring="${sedstring}[[:space:]]*//"
+  # tail=$(echo "${tail}" | sed ${sedstring})
+
+  pattern=""
   for i in $(seq 1 ${#word}); do
-    sedstring="${sedstring}[$(echo ${word:i-1:1} | sed 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/')$(echo ${word:i-1:1} | sed 'y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/')]"
+    pattern="${pattern}[$(echo ${word:i-1:1} | sed 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/')$(echo ${word:i-1:1} | sed 'y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/')]"
   done
-  sedstring="${sedstring}[[:space:]]*//"
-  tail=$(echo "${tail}" | sed ${sedstring})
+  pattern="${pattern}*([[:space:]])"
+  printf "${pattern}\n"
+  tail="${tail##pattern}"
+  printf "${tail}\n"
+  exit 0
 }
 
 # iterate over all scripts
@@ -84,7 +103,7 @@ for script in $(find ${scripts_path} -name "*.ks"); do
       if [[ "${tail}" =~ ^// ]]; then
         tail=""
       else
-        # echo "${script}:${line_num}:${mode} ${tail}"
+        echo "${script}:${line_num}:${mode} ${tail}"
         case ${mode} in
           start)
             if [[ "${tail}" =~ ^@ ]]; then
@@ -163,9 +182,9 @@ done
 
 # print out any errors
 for error in "${errors[@]}"; do
-  echo "${error}"
+  printf "${error}\n"
 done
-echo "found errors in ${num_files} files"
+printf "found errors in ${num_files} files\n"
 
 if [ "${#errors[@]}" -gt 0 ]; then
   exit 1
