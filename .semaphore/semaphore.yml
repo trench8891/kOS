@@ -8,8 +8,9 @@ blocks:
   - name: "Versions"
     task:
       jobs:
-        - name: "Bash Version"
+        - name: "bash version"
         commands:
+          - checkout
           - /bin/bash bash --version
   - name: "Kerboscript Linter"
     task:
