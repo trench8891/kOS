@@ -13,16 +13,16 @@ blocks:
           - /bin/bash --version
   - name: "Kerboscript Linter"
     task:
+      prologue:
+        commands:
+          - checkout
       jobs:
       - name: "syntax checks"
         commands:
-          - checkout
           - /bin/bash checks/syntax.sh
       - name: "style checks"
         commands:
-          - checkout
           - /bin/bash checks/style.sh -l 60
       - name: "workflow checks"
         commands:
-          - checkout
           - /bin/bash checks/repo.sh
