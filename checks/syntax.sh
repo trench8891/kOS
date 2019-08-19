@@ -60,22 +60,13 @@ function regerr() {
 # drop the head of the tail
 function swallow_tail() {
   word="${1}"
-  # sedstring='s/^'
-  # for i in $(seq 1 ${#word}); do
-  #   sedstring="${sedstring}[$(echo ${word:i-1:1} | sed 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/')$(echo ${word:i-1:1} | sed 'y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/')]"
-  # done
-  # sedstring="${sedstring}[[:space:]]*//"
-  # tail=$(echo "${tail}" | sed ${sedstring})
 
   pattern=""
   for i in $(seq 1 ${#word}); do
     pattern="${pattern}[$(echo ${word:i-1:1} | sed 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/')$(echo ${word:i-1:1} | sed 'y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/')]"
   done
-  pattern="${pattern}*([[:space:]])"
-  printf "${pattern}\n"
-  tail="${tail##pattern}"
-  printf "${tail}\n"
-  exit 0
+  pattern=${pattern}*([[:space:]])
+  tail=${tail##${pattern}}
 }
 
 # iterate over all scripts
@@ -103,7 +94,7 @@ for script in $(find ${scripts_path} -name "*.ks"); do
       if [[ "${tail}" =~ ^// ]]; then
         tail=""
       else
-        echo "${script}:${line_num}:${mode} ${tail}"
+        # echo "${script}:${line_num}:${mode} ${tail}"
         case ${mode} in
           start)
             if [[ "${tail}" =~ ^@ ]]; then
