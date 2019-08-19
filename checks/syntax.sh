@@ -4,6 +4,7 @@ set -e
 shopt -s extglob
 
 scripts_path="Script"
+head_pattern='[^_[:alnum:]]*(*)'
 separator_regex="([^_[:alnum:]]|$)"
 identifier_regex="[_[:alpha:]][_[:alnum:]]*"
 
@@ -109,7 +110,7 @@ for script in $(find ${scripts_path} -name "*.ks"); do
               directives_valid="false"
               mode="declareParameter"
             else
-              regerr ${script} ${line_num} "unknown command: $(echo "${tail}" | sed 's/[^_[:alnum:]].*$//')"
+              regerr ${script} ${line_num} "unknown command: ${tail%%${head_pattern}}"
             fi
             ;;
           directive)
@@ -120,7 +121,7 @@ for script in $(find ${scripts_path} -name "*.ks"); do
                 swallow_tail "lazyglobal"
                 mode="lazyGlobal"
               else
-                regerr ${script} ${line_num} "unknown compiler directive: $(echo "${tail}" | sed 's/[^_[:alnum:]].*$//')"
+                regerr ${script} ${line_num} "unknown compiler directive: ${tail%%${head_pattern}}"
               fi
             fi
             ;;
@@ -136,7 +137,7 @@ for script in $(find ${scripts_path} -name "*.ks"); do
             elif [[ "${tail}" =~ ^[^_[:alnum:]] ]]; then
               regerr ${script} ${line_num} "unexpected separator: \"${tail:0:1}\""
             else
-              regerr ${script} ${line_num} "invalid lazy global mode: $(echo "${tail}" | sed 's/[^_[:alnum:]].*$//')"
+              regerr ${script} ${line_num} "invalid lazy global mode: ${tail%%${head_pattern}}"
             fi
             ;;
           expectPeriod)
