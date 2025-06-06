@@ -85,5 +85,5 @@ GLOBAL FUNCTION terminate {
 
 	PRINT("terminating: " + msg).
   debug("terminating: " + msg).
-	LOCAL segfault IS lexicon()["terminate"].
+	lexicon()["terminate"].
 }

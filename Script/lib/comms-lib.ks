@@ -1,7 +1,7 @@
 // helpful functions for comms
 // RT mod inclusion is assumed
 
-RUNONCEPATH("/lib/io-lib").
+RUNONCEPATH("0:/lib/io-lib").
 debug("loading " + SCRIPTPATH()).
 
 LOCAL comms_module_name IS "ModuleRTAntenna".
@@ -84,6 +84,7 @@ GLOBAL FUNCTION comm_range {
   debug("determining max com range for " + ves).
 
   LOCAL max_range IS 0.
+  LOCAL range IS 0.
 
   FOR comm IN get_all_comms(ves) {
     LOCAL cr IS part_comm_range(comm).

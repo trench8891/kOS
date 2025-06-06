@@ -3,10 +3,10 @@
 
 // load libraries
 PRINT("loadinng libraries...").
-RUNONCEPATH("/lib/io-lib").
-RUNONCEPATH("/lib/launch-lib").
-RUNONCEPATH("/lib/maneuver-lib").
-RUNONCEPATH("/lib/orbit-lib").
+RUNONCEPATH("0:/lib/io-lib").
+RUNONCEPATH("0:/lib/launch-lib").
+RUNONCEPATH("0:/lib/maneuver-lib").
+RUNONCEPATH("0:/lib/orbit-lib").
 debug("all libraries loaded").
 debug("").
 

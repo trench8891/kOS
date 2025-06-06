@@ -4,7 +4,7 @@
 
 PARAMETER delegates.
 
-RUNONCEPATH("/lib/io-lib").
+RUNONCEPATH("0:/lib/io-lib").
 
 PRINT("executing " + delegates:LENGTH + " delegates").
 debug("executing " + delegates:LENGTH + " delegates") 

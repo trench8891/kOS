@@ -3,14 +3,14 @@
 
 // load libraries
 PRINT("loadinng libraries...").
-RUNONCEPATH("/lib/comms-lib").
-RUNONCEPATH("/lib/io-lib").
-RUNONCEPATH("/lib/kac-lib").
-RUNONCEPATH("/lib/launch-lib").
-RUNONCEPATH("/lib/maneuver-lib").
-RUNONCEPATH("/lib/orbit-lib").
-RUNONCEPATH("/lib/sat4-lib").
-RUNONCEPATH("/lib/store-lib").
+RUNONCEPATH("0:/lib/comms-lib").
+RUNONCEPATH("0:/lib/io-lib").
+RUNONCEPATH("0:/lib/kac-lib").
+RUNONCEPATH("0:/lib/launch-lib").
+RUNONCEPATH("0:/lib/maneuver-lib").
+RUNONCEPATH("0:/lib/orbit-lib").
+RUNONCEPATH("0:/lib/sat4-lib").
+RUNONCEPATH("0:/lib/store-lib").
 debug("all libraries loaded").
 debug("").
 

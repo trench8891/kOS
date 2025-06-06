@@ -1,6 +1,6 @@
 // launch trigger functions and basic launch profile
 
-RUNONCEPATH("/lib/io-lib").
+RUNONCEPATH("0:/lib/io-lib").
 debug("loading " + SCRIPTPATH()).
 
 // perform calculations necessary for heading lock

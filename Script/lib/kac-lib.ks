@@ -1,7 +1,7 @@
 // helpful KAC functions and globals
 // kac mod inclusion is assumed
 
-RUNONCEPATH("/lib/io-lib").
+RUNONCEPATH("0:/lib/io-lib").
 debug("loading " + SCRIPTPATH()).
 
 // get a single alarm by name

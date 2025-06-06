@@ -1,6 +1,6 @@
 // functions for SAT-4 constellations
 
-RUNONCEPATH("/lib/io-lib").
+RUNONCEPATH("0:/lib/io-lib").
 debug("loading " + SCRIPTPATH()).
 
 // get the eccentric anomaly from mean anomaly using
@@ -96,16 +96,16 @@ LOCAL FUNCTION mean_to_true {
 // Determine minimum semi-major axis of SAT-4 constellation
 // Atmospheric height is included in the calculation
 //
-// PARAMETER body: parent body
+// PARAMETER bdy: parent body
 //
 // RETURN minimum semi-major axis in meters
 GLOBAL FUNCTION sat4_min_a {
-	PARAMETER body.
+	PARAMETER bdy.
 
   debug("calculating sat4_min_a").
-  debug("body: " + body).
+  debug("body: " + bdy).
 
-	RETURN FLOOR((body:RADIUS + body:ATM:HEIGHT) * 7.2).
+	RETURN FLOOR((bdy:RADIUS + bdy:ATM:HEIGHT) * 7.2).
 }
 
 // Determine maximum distance between SAT-4 nodes

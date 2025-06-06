@@ -1,6 +1,6 @@
 // library to help with maneuver nodes
 
-RUNONCEPATH("/lib/io-lib").
+RUNONCEPATH("0:/lib/io-lib").
 debug("loading " + SCRIPTPATH()).
 
 // determine Vector for normal

@@ -1,6 +1,6 @@
 // functions for common orbital values
 
-RUNONCEPATH("/lib/io-lib").
+RUNONCEPATH("0:/lib/io-lib").
 debug("loading " + SCRIPTPATH()).
 
 // find orbital velocity by vis-viva equation
@@ -50,22 +50,22 @@ LOCAL FUNCTION eccentric_anomaly {
 // time and orbital period is enough to determine the REAL
 // mean anomaly
 //
-// PARAMETER orbit: the orbit with everything
+// PARAMETER orb: the orbit with everything
 //
 // RETURN the current mean anomaly in degrees
 LOCAL FUNCTION mean_anomaly {
-  PARAMETER orbit.
+  PARAMETER orb.
 
   debug("finding current mean anomaly").
-  debug("orbit: " + orbit).
+  debug("orbit: " + orb).
 
-  LOCAL maae IS orbit:MEANANOMALYATEPOCH.
+  LOCAL maae IS orb:MEANANOMALYATEPOCH.
   debug("maae: " + maae).
   LOCAL ts IS TIME:SECONDS.
   debug("ts: " + ts).
-  LOCAL epoch IS orbit:EPOCH.
+  LOCAL epoch IS orb:EPOCH.
   debug("epoch: " + epoch).
-  LOCAL p IS orbit:PERIOD.
+  LOCAL p IS orb:PERIOD.
   debug("p: " + p).
 
   RETURN MOD((maae + (((ts - epoch) / p) * 360)), 360).
@@ -99,28 +99,28 @@ LOCAL FUNCTION true_to_mean {
 
 // calculate time to a given true anomaly
 //
-// PARAMETER orbit: the orbit to run calculation on
+// PARAMETER orb: the orbit to run calculation on
 // PARAMETER ta: true anomaly in degrees we want time to
 //
 // RETURN time in seconds to the true anomaly
 LOCAL FUNCTION time_to_true_anomaly {
-  PARAMETER orbit.
+  PARAMETER orb.
   PARAMETER ta.
 
   debug("calculate time to true anomaly").
-  debug("orbit: " + orbit).
+  debug("orbit: " + orb).
   debug("ta: " + ta).
 
-  LOCAL tma IS true_to_mean(orbit:ECCENTRICITY, ta).
+  LOCAL tma IS true_to_mean(orb:ECCENTRICITY, ta).
   debug("tma: " + tma).
-  LOCAL cma IS mean_anomaly(orbit).
+  LOCAL cma IS mean_anomaly(orb).
   debug("cma: " + cma).
   LOCAL diff IS MOD(360 + tma - cma, 360).
   debug("diff: " + diff).
   LOCAL fraction IS (diff / 360).
   debug("fraction: " + fraction).
 
-  RETURN (fraction * orbit:PERIOD).
+  RETURN (fraction * orb:PERIOD).
 }
 
 // Calculate pericenter
@@ -273,57 +273,57 @@ GLOBAL FUNCTION inclination_change {
 // calculate the time to a specified angle from
 // the equatorial plane
 //
-// PARAMETER orbit: the orbit to run calculation on
+// PARAMETER orb: the orbit to run calculation on
 // PARAMETER arg: target angle in degrees
 //
 // RETURN time in seconds to the target angle
 GLOBAL FUNCTION time_to_argument {
-  PARAMETER orbit.
+  PARAMETER orb.
   PARAMETER arg.
 
   debug("calculate time to argument").
-  debug("orbit: " + orbit).
+  debug("orbit: " + orb).
   debug("arg: " + arg).
 
   LOCAL tta IS 
-    MOD(360 + arg - orbit:ARGUMENTOFPERIAPSIS, 360).
+    MOD(360 + arg - orb:ARGUMENTOFPERIAPSIS, 360).
   debug("tta: " + tta).
 
-  RETURN time_to_true_anomaly(orbit, tta).
+  RETURN time_to_true_anomaly(orb, tta).
 }
 
 // calculate the time to ascending node
 //
-// PARAMETER orbit: the orbit to run calculation on
+// PARAMETER orb: the orbit to run calculation on
 //
 // RETURN time in seconds to ascending node
 GLOBAL FUNCTION time_to_an {
-  PARAMETER orbit.
+  PARAMETER orb.
 
   debug("calculate time to ascending node").
-  debug("orbit: " + orbit).
+  debug("orbit: " + orb).
 
-  LOCAL taan IS (360 - orbit:ARGUMENTOFPERIAPSIS).
+  LOCAL taan IS (360 - orb:ARGUMENTOFPERIAPSIS).
   debug("taan: " + taan).
 
-  RETURN time_to_true_anomaly(orbit, taan).
+  RETURN time_to_true_anomaly(orb, taan).
 }
 
 // calculate the time to descending node
 //
-// PARAMETER orbit: the orbit to run calculation on
+// PARAMETER orb: the orbit to run calculation on
 //
 // RETURN time in seconds to descending node
 GLOBAL FUNCTION time_to_dn {
-  PARAMETER orbit.
+  PARAMETER orb.
 
   debug("calculate time to descending node").
-  debug("orbit: " + orbit).
+  debug("orbit: " + orb).
 
-  LOCAL tadn IS MOD(540 - orbit:ARGUMENTOFPERIAPSIS, 360).
+  LOCAL tadn IS MOD(540 - orb:ARGUMENTOFPERIAPSIS, 360).
   debug("tadn: " + tadn).
 
-  RETURN time_to_true_anomaly(orbit, tadn).
+  RETURN time_to_true_anomaly(orb, tadn).
 }
 
 // calculate maneuver node to circularize orbit at apoaps

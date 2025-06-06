@@ -1,7 +1,7 @@
 // functions for storing and retrieving data
 // all functions here depend on the archive being accessible
 
-RUNONCEPATH("/lib/io-lib").
+RUNONCEPATH("0:/lib/io-lib").
 debug("loading " + SCRIPTPATH()).
 
 LOCAL store_location IS 
