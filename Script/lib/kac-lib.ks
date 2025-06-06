@@ -2,6 +2,7 @@
 // kac mod inclusion is assumed
 
 RUNONCEPATH("0:/lib/io-lib").
+RUNONCEPATH("0:/lib/wrappers/TrenchKACAddon").
 debug("loading " + SCRIPTPATH()).
 
 // get a single alarm by name
@@ -15,7 +16,10 @@ GLOBAL FUNCTION get_alarm {
 
 	debug("fetching alarm with name: " + name).
 
-	FOR alarm in ADDONS:KAC:alarms() {
+	LOCAL alarms IS LIST().
+	SET alarms TO kac_alarms().
+
+	FOR alarm in alarms {
 		IF alarm:NAME = name {
 			debug("found alarm: " + alarm).
 			RETURN alarm.

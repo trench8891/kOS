@@ -2,7 +2,7 @@
 // useful for when you want to do a lot of calculations
 // but want to keep the data on a volume low
 
-PARAMETER delegates.
+PARAMETER delegates IS LIST().
 
 RUNONCEPATH("0:/lib/io-lib").
 

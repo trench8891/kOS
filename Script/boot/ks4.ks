@@ -124,7 +124,7 @@ IF (launch_num = 1) {
 	// manually trigger first launch
 	LOCAL lb IS LEXICON().
 	SET lb TO TrenchDelegate(launch_button@).
-	LOCAL lbdlg IS lb["BIND"](target_periaps, launch_heading).
+	LOCAL lbdlg IS lb["bind"](target_periaps, launch_heading).
 	delegates:ADD(lbdlg).
 } ELSE {
 	// launch from alarm
@@ -139,7 +139,7 @@ IF (launch_num = 1) {
 	).
 	LOCAL lt IS LEXICON().
 	SET lt TO TrenchDelegate(launch_at_time@).
-	LOCAL ltdlg IS lt["BIND"](launch_time:SECONDS, target_periaps, launch_heading).
+	LOCAL ltdlg IS lt["bind"](launch_time:SECONDS, target_periaps, launch_heading).
 	delegates:ADD(ltdlg).
 	debug("").
 }
