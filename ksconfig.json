@@ -1,3 +1,14 @@
 {
-  "archive": "Script"
+  "archive": "Script",
+  "linting": {
+    "deprecated": "warning",
+    "type-wrong": "warning",
+    "type-no-call": "warning",
+    "type-wrong-arity": "warning",
+    "type-no-indexer": "warning",
+    "type-not-function": "off",
+    "type-missing-suffix": "warning",
+    "type-missing-operator": "warning",
+    "type-no-setter": "warning"
+  }
 }

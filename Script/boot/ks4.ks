@@ -11,6 +11,7 @@ RUNONCEPATH("0:/lib/maneuver-lib").
 RUNONCEPATH("0:/lib/orbit-lib").
 RUNONCEPATH("0:/lib/sat4-lib").
 RUNONCEPATH("0:/lib/store-lib").
+RUNONCEPATH("0:/lib/wrappers/TrenchDelegate").
 debug("all libraries loaded").
 debug("").
 
@@ -121,9 +122,10 @@ IF (target_aop > 180) {
 debug("launch_heading: " + launch_heading).
 IF (launch_num = 1) {
 	// manually trigger first launch
-	delegates:ADD(
-		launch_button@:bind(target_periaps, launch_heading)
-	).
+	LOCAL lb IS LEXICON().
+	SET lb TO TrenchDelegate(launch_button@).
+	LOCAL lbdlg IS lb["BIND"](target_periaps, launch_heading).
+	delegates:ADD(lbdlg).
 } ELSE {
 	// launch from alarm
 	LOCAL alarm IS get_alarm(alarm_name).
@@ -135,13 +137,10 @@ IF (launch_num = 1) {
 		launch_time:CALENDAR + " - " + 
 		launch_time:CLOCK
 	).
-	delegates:ADD(
-		launch_at_time@:bind(
-			launch_time:SECONDS, 
-			target_periaps, 
-			launch_heading
-		)
-	).
+	LOCAL lt IS LEXICON().
+	SET lt TO TrenchDelegate(launch_at_time@).
+	LOCAL ltdlg IS lt["BIND"](launch_time:SECONDS, target_periaps, launch_heading).
+	delegates:ADD(ltdlg).
 	debug("").
 }
 debug("launch delegate: "+delegates[delegates:LENGTH - 1]).
